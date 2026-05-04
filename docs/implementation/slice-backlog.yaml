@@ -1,0 +1,203 @@
+# Green Flag Award executable slice backlog
+# Only this file selects the next production slice. Keep detailed scope in slice contracts.
+# Valid status values: TODO, CONTRACT_REVIEW, IN_PROGRESS, DONE_BACKEND, DONE_FULL, REOPENED_FOR_UI, BLOCKED
+
+workflow:
+  active_statuses:
+    - CONTRACT_REVIEW
+    - IN_PROGRESS
+    - REOPENED_FOR_UI
+  next_slice_policy: first_eligible_todo_in_order
+  blocked_policy: stop_if_blocked_slice_precedes_next_todo
+  completion_policy:
+    backend_complete_with_frontend_gaps: DONE_BACKEND
+    backend_and_frontend_complete_against_available_ui: DONE_FULL
+  reopen_policy:
+    allowed_statuses_to_reopen:
+      - DONE_BACKEND
+      - DONE_FULL
+    reopen_status: REOPENED_FOR_UI
+    allowed_reasons:
+      - new_figma_screens
+      - changed_figma_screens
+      - previously_stubbed_frontend_now_has_design_evidence
+      - replace_mocks_with_approved_dtos
+    forbidden_without_contract_review:
+      - backend_business_rules
+      - rbac
+      - mystery_redaction
+      - audit
+      - state_machines
+      - schema
+      - core_api_behavior
+      - production_assumptions
+
+slices:
+  - id: 0
+    slug: operating-layer-and-contract-build-baseline
+    title: Operating layer and contract/build baseline
+    status: DONE_FULL
+    depends_on: []
+    purpose: Establish the Codex operating layer, app scaffold, baseline contracts, enum/error/idempotency conventions, OpenAPI skeleton, migration convention, and safe lower-environment seed strategy.
+    frontend_reopen_allowed: true
+    contract_path: docs/implementation/slice-contracts/S00-operating-layer-and-contract-build-baseline.md
+    delivery_record_path: docs/implementation/delivery-records/S00-operating-layer-and-contract-build-baseline-delivery.md
+
+  - id: 1
+    slug: identity-rbac-audit-foundation
+    title: Identity, RBAC, and audit foundation
+    status: TODO
+    depends_on: [0]
+    purpose: Implement Cognito identity mapping, internal users, scoped role assignments, session/profile resolution, auth guards, and append-only audit foundations.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 2
+    slug: organisations-parks-locations-cycles-episodes
+    title: Organisations, parks, locations, cycles, and episodes
+    status: TODO
+    depends_on: [1]
+    purpose: Implement canonical organisations, parks, park locations, award tracks/categories, award cycles, cycle windows, and assessment_episodes as the lifecycle root.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 3
+    slug: registration-eligibility-verification-admin-approval
+    title: Registration, eligibility, verification, and admin approval
+    status: TODO
+    depends_on: [2]
+    purpose: Deliver the public-to-admin registration journey, including eligibility, duplicate warning, email verification, admin approve/reject, notifications/contracts, and audit.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 4
+    slug: applicant-dashboard-application-draft-autosave
+    title: Applicant dashboard and application draft/autosave
+    status: TODO
+    depends_on: [3]
+    purpose: Deliver applicant dashboard read models, create/continue application, section draft/autosave, progress percentage, allowed actions, and mocks for incomplete UI.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 5
+    slug: documents-management-plan-upload-link-versioning
+    title: Documents and management plan upload/link/versioning
+    status: TODO
+    depends_on: [4]
+    purpose: Deliver management plan upload/link handling, chunked upload contracts, file asset metadata, SHA-256 duplicate detection, versioning/archive, signed access, and document visibility rules.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 6
+    slug: submission-invoice-po-payment-state
+    title: Submission, invoice, PO/no-PO, and manual payment state
+    status: TODO
+    depends_on: [5]
+    purpose: Deliver application submission, window validation, invoice creation, fee schedule hooks, PO/no-PO capture, manual mark-paid, overdue/payment block, and payment override contracts.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 7
+    slug: admin-read-models-queues
+    title: Admin read models and operational queues
+    status: TODO
+    depends_on: [3, 4, 6]
+    purpose: Deliver admin dashboard/read models for registrations, applications, payments, allocation readiness, documents, results, filters, pagination, and operational work queues.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 8
+    slug: judge-profiles-assessor-management-capacity
+    title: Judge profiles, assessor management, availability, and capacity
+    status: TODO
+    depends_on: [1, 2]
+    purpose: Deliver judge/assessor profiles, accreditation status source of truth, preferences, availability/capacity, admin management surfaces, and related read models.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 9
+    slug: allocation-workflow-candidates-coi-release-acceptance
+    title: Allocation workflow: candidates, COI, hold/release, and acceptance
+    status: TODO
+    depends_on: [6, 8]
+    purpose: Deliver candidate queries, hard/soft COI handling, rotation flags, suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 10
+    slug: mystery-redaction-hardening
+    title: Mystery Shop redaction hardening
+    status: TODO
+    depends_on: [2, 4, 7, 9]
+    purpose: Centralize and test Mystery redaction across applicant/org APIs, read models, notifications, documents, messages, exports, search, status labels, and public surfaces.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 11
+    slug: visits-assessment-scoring-framework
+    title: Visits and configurable assessment/scoring framework
+    status: TODO
+    depends_on: [9, 10]
+    purpose: Deliver site visits, configurable assessment templates/criteria/subcriteria/bands placeholders, score entries, evidence, offline sync contracts, threshold calculation, and judge assessment flows.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 12
+    slug: decisions-results-certificates-public-map-events
+    title: Decisions, result publication, certificates, and public map events
+    status: TODO
+    depends_on: [11]
+    purpose: Deliver decision_results, threshold acknowledgements, Full batch release, Mystery publish, result artifacts, certificate shell, derived park award cache, and public_map_update_events.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 13
+    slug: notifications-messaging-jobs-exports-reminders
+    title: Notifications, messaging, jobs, exports, and renewal reminders
+    status: TODO
+    depends_on: [3, 6, 9, 12]
+    purpose: Deliver template versions, notification queue/log, email/SMS adapter boundary, suppression logs, message threads, job runs, renewal reminder jobs, and generic data exports.
+    frontend_reopen_allowed: true
+    contract_path: null
+    delivery_record_path: null
+
+  - id: 14
+    slug: hardening-uat-migration-performance-security
+    title: Hardening, UAT readiness, migration, performance, and security review
+    status: TODO
+    depends_on: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    purpose: Complete permission tests, Mystery leakage tests, migration dry runs, load/performance/security checks, seed data review, monitoring hooks, UAT readiness, and launch confidence.
+    frontend_reopen_allowed: false
+    contract_path: null
+    delivery_record_path: null
+
+# Optional demo accelerants are not selected by the normal next_slice_policy.
+# Activate manually only if client/demo pressure requires it.
+demo_slices:
+  - id: D1
+    slug: applicant-demo-path
+    title: Applicant demo path
+    status: OPTIONAL
+    depends_on: [0, 1, 2]
+    purpose: Create a client-demoable applicant journey using real episode/cycle/application contracts where possible and explicit mocks/stubs where later slices are not ready.
+    allowed_shortcuts:
+      - mock_auth_session_if_real_cognito_not_ready
+      - mock_w3w_os_ons_responses
+      - mock_invoice_payment_status
+    forbidden:
+      - bypass_episode_first_architecture
+      - hardcode_production_fees
+      - implement_allocation_scoring_or_results
+      - treat_demo_mocks_as_production_complete

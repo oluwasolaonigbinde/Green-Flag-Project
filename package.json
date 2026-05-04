@@ -1,0 +1,25 @@
+{
+  "name": "green-flag-project",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "build": "corepack pnpm --filter @green-flag/shared build && corepack pnpm --filter @green-flag/contracts build && corepack pnpm --filter @green-flag/db build && corepack pnpm --filter @green-flag/api build && corepack pnpm --filter @green-flag/web build",
+    "typecheck": "corepack pnpm build && corepack pnpm --filter @green-flag/shared typecheck && corepack pnpm --filter @green-flag/contracts typecheck && corepack pnpm --filter @green-flag/db typecheck && corepack pnpm --filter @green-flag/api typecheck && corepack pnpm --filter @green-flag/web typecheck",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "contracts:check": "corepack pnpm --filter @green-flag/contracts contracts:check",
+    "openapi:check": "node scripts/check-openapi.mjs",
+    "db:migrate:check": "corepack pnpm --filter @green-flag/db migrate:check",
+    "db:seed:check": "corepack pnpm --filter @green-flag/db seed:check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@types/node": "^22.15.19",
+    "eslint": "^9.27.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
+    "vitest": "^3.1.4"
+  }
+}

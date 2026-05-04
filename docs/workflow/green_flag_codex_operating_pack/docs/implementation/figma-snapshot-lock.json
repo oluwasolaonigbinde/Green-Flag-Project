@@ -1,0 +1,19 @@
+{
+  "snapshot_policy": "local_locked_snapshot_unverified_until_repo_agent_hydrates",
+  "live_figma_access": "unknown",
+  "last_checked_at": null,
+  "figma_file_key": null,
+  "figma_last_modified": null,
+  "figma_version": null,
+  "local_manifest_paths": [
+    "docs/figma-manifest.json",
+    "docs/figma-manifest.md"
+  ],
+  "local_export_root": "docs/figma",
+  "exports": [],
+  "notes": [
+    "Hydrate this file from docs/figma-manifest.json/md and local PNG hashes.",
+    "If live Figma metadata is available and newer than this lock, stop frontend implementation unless user explicitly approves building against the locked snapshot.",
+    "If live Figma access is unavailable, proceed against local locked exports and record freshness could not be verified."
+  ]
+}

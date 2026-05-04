@@ -1,0 +1,55 @@
+# Maps known local UI evidence to delivery slices.
+# A repo-aware agent should hydrate node IDs and exact paths from docs/figma-manifest.json/md.
+
+screens:
+  - screen_id: applicant_applications
+    name: Applicant applications
+    file_hint: "Applicant - Applications.png"
+    portal: applicant
+    related_slices: [4, 6]
+    confidence: available_from_uploaded_context
+    intended_use:
+      - applicant dashboard/application list read model
+      - application status/progress cards
+      - applicant navigation/allowed actions
+    notes: Exact repo-relative path and Figma node id must be hydrated from local manifest.
+
+  - screen_id: super_admin_judge_role_management
+    name: Super Admin award management user role management judges
+    file_hint: "Super Admin - Award management - User role Management - Judges-1.png"
+    portal: super_admin
+    related_slices: [1, 8]
+    confidence: available_from_uploaded_context
+    intended_use:
+      - user role management read models
+      - judge role/admin surface alignment
+    notes: Business role rules still come from PRD/architecture, not UI labels.
+
+  - screen_id: super_admin_assessor_management
+    name: Super Admin assessor management
+    file_hint: "Super Admin - Assessor Management.png"
+    portal: super_admin
+    related_slices: [8]
+    confidence: available_from_uploaded_context
+    intended_use:
+      - assessor profile management
+      - judge status/accreditation/admin read model
+    notes: Exact route must be inferred from actual app once scaffold exists.
+
+  - screen_id: assessor_evaluation_park_details
+    name: Assessor evaluation park details
+    file_hint: "Assessor - Evaluation - Park details.png"
+    portal: judge
+    related_slices: [9, 11]
+    confidence: available_from_uploaded_context
+    intended_use:
+      - assigned park details
+      - W3W/deeplink display
+      - judge preparation/evaluation context
+    notes: Full scoring/offline workflow likely needs additional screens.
+
+auto_mapping_rules:
+  - Inspect docs/figma-manifest.json and docs/figma-manifest.md before planning UI work.
+  - Exact PNG path beats file_hint.
+  - UI mapping can expand a frontend contract but cannot override PRD/architecture business rules.
+  - If a screen appears related to multiple slices, use the current slice contract to decide whether it is in-scope now or only referenced as future evidence.

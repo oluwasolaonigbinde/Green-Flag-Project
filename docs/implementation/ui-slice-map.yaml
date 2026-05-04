@@ -1,0 +1,293 @@
+# Maps local Figma/PNG evidence to Green Flag delivery slices.
+# Business rules still come from PRD/requirements/architecture, not UI labels.
+
+version: 1
+
+sources:
+  manifest_json: docs/figma-manifest.json
+  manifest_md: docs/figma-manifest.md
+  png_dir: docs/figma
+  snapshot_lock: docs/implementation/figma-snapshot-lock.json
+
+evidence_status_values:
+  - available
+  - partial
+  - missing
+  - uncertain
+
+screen_groups:
+  - group_id: applicant_dashboard_and_application_list
+    portal: applicant
+    evidence_status: available
+    related_slices: [4, 6]
+    primary_slice: 4
+    figma_node_ids:
+      - "3:2"
+      - "332:1647"
+      - "44:231"
+      - "214:3442"
+      - "215:3602"
+    png_paths:
+      - docs/figma/Applicant  - Applications.png
+      - docs/figma/Applicant - Dashboard - My applications.png
+      - docs/figma/Applicant - Dashboard - My applications-1.png
+      - docs/figma/Applicant - Dashboard - Evalution Result.png
+      - docs/figma/Applicant - Evaluation Result.png
+    intended_use:
+      - applicant shell and navigation
+      - application list/dashboard read model
+      - application progress/status/allowed actions
+      - invoice/payment status shell after submission
+    reopen_trigger: new_or_changed_applicant_dashboard_or_status_screen
+    notes: Exact frame-to-PNG mapping is not one-to-one in the current manifest; node IDs are family-level metadata.
+
+  - group_id: applicant_application_wizard
+    portal: applicant
+    evidence_status: available
+    related_slices: [4, 5, 6]
+    primary_slice: 4
+    figma_node_ids:
+      - "109:663"
+      - "339:1895"
+      - "109:846"
+      - "110:1378"
+      - "110:1579"
+      - "110:1681"
+      - "111:2036"
+      - "113:456"
+      - "114:538"
+    png_paths:
+      - docs/figma/Applicant - Application - Location.png
+      - docs/figma/Applicant - Application - Location-1.png
+      - docs/figma/Applicant - Application - Location-2.png
+      - docs/figma/Applicant - Application - Site Information.png
+      - docs/figma/Applicant - Application - contact details.png
+      - docs/figma/Applicant - Application - publicity.png
+      - docs/figma/Applicant - Application - Optional Information.png
+      - docs/figma/Applicant - Application - Document.png
+      - docs/figma/Applicant - Application - Review & submit.png
+      - docs/figma/Appicant - Application - Submitted.png
+      - docs/figma/Appicant - Application - Submitted-1.png
+      - docs/figma/Appicant - Application - Payment.png
+    intended_use:
+      - application draft/autosave flow
+      - section completion and review projection
+      - document upload surface
+      - submission and payment handoff shell
+    reopen_trigger: new_or_changed_application_step_screen
+    notes: Payment PNG is available but no exact node ID is exposed in the current manifest summary; map during contract planning before implementation.
+
+  - group_id: applicant_park_application_details
+    portal: applicant
+    evidence_status: available
+    related_slices: [2, 4, 10]
+    primary_slice: 4
+    figma_node_ids: []
+    png_paths:
+      - docs/figma/Applicant - Application - Application details.png
+      - docs/figma/Applicant - Application - Application details - Mystery Shopping.png
+      - docs/figma/Applicant - Application - Green Heritage Accreditaion.png
+    intended_use:
+      - park/application detail read models
+      - Mystery-facing applicant redaction comparison
+      - blocked/draft category presentation
+    reopen_trigger: new_or_changed_application_detail_screen
+    notes: No exact node IDs are exposed for these PNGs in the current manifest; treat as available visual evidence with uncertain node mapping.
+
+  - group_id: applicant_resources_awards_content
+    portal: applicant
+    evidence_status: available
+    related_slices: [4, 13]
+    primary_slice: 4
+    figma_node_ids:
+      - "48:234"
+      - "62:304"
+      - "107:290"
+      - "79:633"
+    png_paths:
+      - docs/figma/Applicant - Resources & Document - Award Categories.png
+      - docs/figma/Applicant - Award directory.png
+      - docs/figma/Applicant - Award category - details.png
+      - docs/figma/Applicant - Award category - details-1.png
+      - docs/figma/Applicant - Award category - details-2.png
+      - docs/figma/Applicant - Award category - details-3.png
+      - docs/figma/Applicant - Case Studies.png
+      - docs/figma/Applicant - Case Studies - Details.png
+    intended_use:
+      - applicant-facing resource/content shells
+      - award category directory/detail read models
+      - non-operational content navigation
+    reopen_trigger: new_or_changed_resource_or_award_content_screen
+    notes: These screens may be above or adjacent to MVP operational workflow; contract should decide whether to implement, stub, or defer.
+
+  - group_id: applicant_messages_and_site_visit
+    portal: applicant
+    evidence_status: available
+    related_slices: [9, 13]
+    primary_slice: 13
+    figma_node_ids:
+      - "92:269"
+      - "100:597"
+      - "26:893"
+      - "33:1287"
+    png_paths:
+      - docs/figma/Applicant - Messages.png
+      - docs/figma/Applicant - Compose message.png
+      - docs/figma/Applicant - Dasboard - site visit - list view.png
+      - docs/figma/Applicant - Dashboard- site visit - calender view.png
+    intended_use:
+      - scoped message threads and compose surface
+      - applicant site visit list/calendar surfaces
+      - Mystery notification/visit suppression checks
+    reopen_trigger: new_or_changed_message_or_site_visit_screen
+    notes: Site visit visibility depends on allocation/release/redaction slices; UI must not define visibility rules.
+
+  - group_id: assessor_dashboard_schedule_preferences
+    portal: assessor
+    evidence_status: available
+    related_slices: [8, 9, 11]
+    primary_slice: 8
+    figma_node_ids:
+      - "122:731"
+      - "128:498"
+      - "157:1582"
+    png_paths:
+      - docs/figma/Assessor - Dashboard.png
+      - docs/figma/Assessor - Schedule Visit.png
+      - docs/figma/Assessor - Manage Preference.png
+    intended_use:
+      - assessor dashboard/read model
+      - visit schedule UI
+      - judge profile/preference management
+    reopen_trigger: new_or_changed_assessor_dashboard_or_preference_screen
+    notes: Build only against approved assignment/visit contracts; UI must not reveal Full or Mystery contacts prematurely.
+
+  - group_id: assessor_evaluation_and_scoring
+    portal: assessor
+    evidence_status: available
+    related_slices: [9, 11, 12]
+    primary_slice: 11
+    figma_node_ids:
+      - "134:2089"
+      - "135:2512"
+      - "262:6219"
+      - "147:1000"
+      - "150:1019"
+      - "153:1438"
+    png_paths:
+      - docs/figma/Assessor - Evaluation.png
+      - docs/figma/Assessor - Evaluation History.png
+      - docs/figma/Assessor - Evaluation - Park details.png
+      - docs/figma/Assessor - Evaluation - Park details-1.png
+      - docs/figma/Assessor - Evaluation - Park Application detail.png
+      - docs/figma/Assessor - Marking Criteria.png
+      - docs/figma/Assessor - Marking Criteria - Award details.png
+      - docs/figma/Message.png
+    intended_use:
+      - assigned park details and evaluation context
+      - configurable scoring/template surfaces
+      - evidence/history surfaces
+      - shared message surface
+    reopen_trigger: new_or_changed_assessor_evaluation_or_scoring_screen
+    notes: Official scoring text, criteria, bands, and KBT wording remain external dependencies and must not be inferred from UI.
+
+  - group_id: super_admin_dashboard_and_queues
+    portal: super_admin
+    evidence_status: available
+    related_slices: [7, 9, 12, 13]
+    primary_slice: 7
+    figma_node_ids:
+      - "159:1850"
+      - "202:2045"
+      - "207:2777"
+      - "227:4609"
+      - "228:5474"
+      - "230:5944"
+      - "237:1160"
+      - "268:1471"
+    png_paths:
+      - docs/figma/Super Admin - Dashboard.png
+      - docs/figma/Super Admin - Assessor Allocation - Application List.png
+      - docs/figma/Super Admin - Coverage Map.png
+      - docs/figma/Super Admin - Award Management - Recent Applications.png
+      - docs/figma/Super Admin - Award Management - Shortlisted Parks.png
+      - docs/figma/Super Admin - Award Management - Finalist Comparison.png
+      - docs/figma/Super Admin - Park details.png
+      - docs/figma/Super Admin - Past Winners.png
+      - docs/figma/Super Admin - Document Archieve.png
+    intended_use:
+      - admin dashboards and operational queues
+      - allocation readiness and application list surfaces
+      - result/publication/past-winner read models
+      - archive/export surfaces
+    reopen_trigger: new_or_changed_super_admin_dashboard_or_queue_screen
+    notes: Export and dashboard UI must obey server-side scope, audit, and redaction rules from the relevant backend slice.
+
+  - group_id: super_admin_configuration_and_people
+    portal: super_admin
+    evidence_status: available
+    related_slices: [1, 2, 7, 8]
+    primary_slice: 8
+    figma_node_ids:
+      - "194:1028"
+      - "212:3068"
+      - "238:1458"
+      - "247:1172"
+      - "248:1711"
+    png_paths:
+      - docs/figma/Super Admin - Assessor Management.png
+      - docs/figma/Super Admin - Award management - Award category.png
+      - docs/figma/Super admin - Management - Category details.png
+      - docs/figma/Super Admin - Award management - User role Management - Judges.png
+      - docs/figma/Super Admin - Award management - User role Management - Judges-1.png
+    intended_use:
+      - assessor management
+      - role/user management surface
+      - category/cycle configuration UI
+    reopen_trigger: new_or_changed_super_admin_configuration_or_people_screen
+    notes: Role, scope, and category lifecycle rules come from backend contracts, not table labels in the UI.
+
+  - group_id: mobile_iphone_flow
+    portal: mobile
+    evidence_status: missing
+    related_slices: [8, 9, 11]
+    primary_slice: 11
+    figma_node_ids:
+      - "359:1913"
+      - "362:2004"
+      - "366:2169"
+      - "371:1786"
+      - "373:1944"
+      - "385:1941"
+      - "385:1998"
+      - "385:2055"
+      - "398:2612"
+      - "390:2214"
+      - "393:2509"
+    png_paths: []
+    intended_use:
+      - mobile/offline assessor flow
+      - continue/complete assessment surfaces
+    reopen_trigger: mobile_png_exports_or_live_figma_context_available
+    notes: Node IDs exist in manifest, but no mobile PNG exports are present in docs/figma.
+
+  - group_id: public_winner_map_and_profiles
+    portal: public
+    evidence_status: missing
+    related_slices: [12]
+    primary_slice: 12
+    figma_node_ids: []
+    png_paths: []
+    intended_use:
+      - public winner map surface
+      - public park profile/certificate verification surfaces if confirmed in MVP
+    reopen_trigger: public_map_or_public_profile_figma_exports_available
+    notes: Current assets include admin coverage/map-related screens but no public visitor map/profile PNGs.
+
+auto_mapping_rules:
+  - Inspect docs/figma-manifest.json and docs/figma-manifest.md before planning UI work.
+  - Exact PNG path beats file hints.
+  - Exact node ID beats inferred family mapping.
+  - UI mapping can expand a frontend contract but cannot override PRD/architecture business rules.
+  - If a screen appears related to multiple slices, use the current slice contract to decide whether it is in scope now or only referenced as future evidence.
+  - If mapping remains ambiguous, return HUMAN_DECISION_REQUIRED rather than silently choosing a slice.

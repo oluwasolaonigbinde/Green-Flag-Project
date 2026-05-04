@@ -1,0 +1,449 @@
+﻿{
+    "schemaVersion":  1,
+    "freshness":  {
+                      "liveFigmaAccess":  "unknown",
+                      "liveMetadataCheckedAt":  null,
+                      "status":  "unknown_live_freshness_local_snapshot_available",
+                      "policy":  "If live Figma metadata is available and newer than this snapshot, stop before frontend implementation unless the user explicitly approves using the local snapshot."
+                  },
+    "figma":  {
+                  "fileKey":  "SucbJ5dh3Pt0zKEMAL1YcG",
+                  "fileUrl":  "https://www.figma.com/design/SucbJ5dh3Pt0zKEMAL1YcG/GreenFlag?node-id=0-1\u0026p=f\u0026m=dev",
+                  "rootNodeId":  "0:1",
+                  "version":  null,
+                  "lastModified":  null
+              },
+    "localSnapshot":  {
+                          "manifestJson":  "docs/figma-manifest.json",
+                          "manifestMd":  "docs/figma-manifest.md",
+                          "pngExportDir":  "docs/figma",
+                          "pngExportCount":  57,
+                          "latestPngModifiedLocal":  "2026-05-01T09:26:28",
+                          "initializedAtLocal":  "2026-05-01T18:31:14"
+                      },
+    "nodeIds":  {
+                    "anchors":  {
+                                    "applicantDashboard":  "3:2",
+                                    "applicantWizard":  "109:846",
+                                    "applicantMessages":  "92:269",
+                                    "assessorDashboard":  "122:731",
+                                    "superAdminDashboard":  "159:1850",
+                                    "mobileFirst":  "359:1913"
+                                },
+                    "families":  {
+                                     "applicantDesktop":  [
+                                                              "3:2",
+                                                              "332:1647",
+                                                              "214:3442",
+                                                              "215:3602",
+                                                              "44:231",
+                                                              "48:234",
+                                                              "62:304",
+                                                              "107:290",
+                                                              "79:633",
+                                                              "92:269",
+                                                              "100:597",
+                                                              "26:893",
+                                                              "33:1287",
+                                                              "109:663",
+                                                              "339:1895",
+                                                              "109:846",
+                                                              "110:1378",
+                                                              "110:1579",
+                                                              "110:1681",
+                                                              "111:2036",
+                                                              "113:456",
+                                                              "114:538"
+                                                          ],
+                                     "assessorDesktop":  [
+                                                             "122:731",
+                                                             "128:498",
+                                                             "134:2089",
+                                                             "135:2512",
+                                                             "262:6219",
+                                                             "147:1000",
+                                                             "150:1019",
+                                                             "157:1582",
+                                                             "153:1438"
+                                                         ],
+                                     "superAdminDesktop":  [
+                                                               "159:1850",
+                                                               "194:1028",
+                                                               "202:2045",
+                                                               "207:2777",
+                                                               "212:3068",
+                                                               "227:4609",
+                                                               "227:5093",
+                                                               "228:5474",
+                                                               "230:5944",
+                                                               "237:1160",
+                                                               "238:1458",
+                                                               "247:1172",
+                                                               "248:1711",
+                                                               "268:1471"
+                                                           ],
+                                     "mobileIphone":  [
+                                                          "359:1913",
+                                                          "362:2004",
+                                                          "366:2169",
+                                                          "371:1786",
+                                                          "373:1944",
+                                                          "385:1941",
+                                                          "385:1998",
+                                                          "385:2055",
+                                                          "398:2612",
+                                                          "390:2214",
+                                                          "393:2509"
+                                                      ]
+                                 }
+                },
+    "pngExports":  [
+                       {
+                           "path":  "docs/figma/Appicant - Application - Payment.png",
+                           "sha256":  "9c9988e01b2f4403b20cae93346ffe5cae90b6620e908aa827684d7da795bc53",
+                           "bytes":  364370,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Appicant - Application - Submitted.png",
+                           "sha256":  "1232858a933a64931d7b7561a7481c6b4abd600dd14e9ae1d025e98920c6a0f2",
+                           "bytes":  174350,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Appicant - Application - Submitted-1.png",
+                           "sha256":  "0b24b2588b354103aa18d59f0a5b58357eb7b0d90326b461541bf09cb1820c0a",
+                           "bytes":  297274,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant  - Applications.png",
+                           "sha256":  "051bcdf3ac61c25bc42421255b73a68af1ebb621e0d40bb3889a5b31e913d3c3",
+                           "bytes":  287889,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Application details - Mystery Shopping.png",
+                           "sha256":  "680dbce972d4560f08f10b5ba06495a71189c1f9808efb31a7a7aff2f9ec8d2f",
+                           "bytes":  1196482,
+                           "lastModifiedLocal":  "2026-05-01T09:26:28"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Application details.png",
+                           "sha256":  "fd064a4c159ebd0c868e78205e680ee153d759c91ff44e3c67b3650cb0e66ddf",
+                           "bytes":  1228576,
+                           "lastModifiedLocal":  "2026-05-01T09:26:28"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - contact details.png",
+                           "sha256":  "bf2d861d22b0897527dcaff749d883c4fb3fc6257fa2490d68eeee0547fc9977",
+                           "bytes":  268463,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Document.png",
+                           "sha256":  "8d1736ca37227827b5f90ef9ddeb5a20be4d2190e8ebba645ab228b633a9e900",
+                           "bytes":  334568,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Green Heritage Accreditaion.png",
+                           "sha256":  "6d7e46b2e81f909b56d621daab1069a6dabe7cce737999fb56d084c10d4dabf5",
+                           "bytes":  270892,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Location.png",
+                           "sha256":  "f00f6d1ba9d2240e5b1d7c57af6d69549fde7ca3d532eabaf6a347a5aae99f4d",
+                           "bytes":  273863,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Location-1.png",
+                           "sha256":  "8640698a1600b6bc38706f8fd1c0b572c24d84561013b099134939595f2847c7",
+                           "bytes":  387590,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Location-2.png",
+                           "sha256":  "c4d18f154e4392fc7ca7bec737841ebdf0bb57b170e96f7244d1a5144aa72cd7",
+                           "bytes":  187387,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Optional Information.png",
+                           "sha256":  "5944f7094cdb797ffa651f1504301e18979d1fdf346fa2fba02227abc98bac7b",
+                           "bytes":  285958,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - publicity.png",
+                           "sha256":  "a26cf41ec648c37a8bb6b33a148bbd1236f30ab578d63de121032aed38282d98",
+                           "bytes":  242164,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Review \u0026 submit.png",
+                           "sha256":  "e6270f54001c6301eb1da5ac5f2110117b629788cfd9f626e4017b37ab16520e",
+                           "bytes":  1230268,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Application - Site Information.png",
+                           "sha256":  "034934399cde3170eced6cbc161db1e6fc10c31bd99d46a950f1c4d0691f839a",
+                           "bytes":  328549,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Award category - details.png",
+                           "sha256":  "172b686fd605c832f6362d8b475ac063a895a49875d729e71c635005ca0b7cf2",
+                           "bytes":  362732,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Award category - details-1.png",
+                           "sha256":  "83ac08575fef211275fdc8eeab36429a663f476b1871d446f7d5860d71ee2e1c",
+                           "bytes":  382250,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Award category - details-2.png",
+                           "sha256":  "de53d08f7780530614fe67f225c5beb86632a3428c50ae4ccfbc4309100611a9",
+                           "bytes":  397718,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Award category - details-3.png",
+                           "sha256":  "e7841638b88ba0305be9b0a455861895e774a2a88e6c8d82c2a18be34eab9c3e",
+                           "bytes":  422725,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Award directory.png",
+                           "sha256":  "49f186e4289ec9e383ad2fa49f58cd3ed5894473d721b927bf3e56a978259c1e",
+                           "bytes":  698283,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Case Studies - Details.png",
+                           "sha256":  "211a70656f436be0878abf02ccbc98af91e7966ee07bff433f53944a8fd6fdbc",
+                           "bytes":  900818,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Case Studies.png",
+                           "sha256":  "106263a7bc68e85b675ea7b8accd34b19229723004a181354c7930706b76fca1",
+                           "bytes":  427163,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Compose message.png",
+                           "sha256":  "c1532dd80330eee4ba82728559c2e6cba9a479be6f60547b349694e4c2f2009a",
+                           "bytes":  284056,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Dasboard - site visit - list view.png",
+                           "sha256":  "8a66c84105fa991285cea9dea3be5be092bdb5494996a4fc3b845320801e3fcc",
+                           "bytes":  381926,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Dashboard - Evalution Result.png",
+                           "sha256":  "901376f1a2ca44314c7026d7cfed4db58f16267f6c0286b16f2c41b8ef456ab9",
+                           "bytes":  189874,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Dashboard - My applications.png",
+                           "sha256":  "64c366b48c18520ecb74bd6549c3677481167be454e06edd99318d364720ab6c",
+                           "bytes":  235386,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Dashboard - My applications-1.png",
+                           "sha256":  "fd91e04d4147fbe50c8f14b9345bcd8139fe91a90ba5d5aae5799416a4d5224a",
+                           "bytes":  225911,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Dashboard- site visit - calender view.png",
+                           "sha256":  "18aa3e9e48faa8aa57bc7ceb0117682f74c30f2230e128638aeafbbf6b69426a",
+                           "bytes":  421227,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Evaluation Result.png",
+                           "sha256":  "7b69471b5b79cd981cca191398f5041cbb16e084b9b09dc3c7c294d6b13daa57",
+                           "bytes":  569577,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Messages.png",
+                           "sha256":  "175504a4acde2239aaddc5ac32cc198183f97d342fcb6b1d694856bffd9fdaa6",
+                           "bytes":  376367,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Applicant - Resources \u0026 Document - Award Categories.png",
+                           "sha256":  "4b553bfd05adda8f523b7035a4270a5f7ff2aad2b591660cdeb44029b7e31db5",
+                           "bytes":  525562,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Dashboard.png",
+                           "sha256":  "37037f254d16aa8d5e38f99d80be904ebae5a46aadc6cd07d18bb29c07f71bee",
+                           "bytes":  332144,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Evaluation - Park Application detail.png",
+                           "sha256":  "b51aa28bb89a58e7eb1c58a4d7da37d6a0d28be40529f0207c6d4b0ce3606314",
+                           "bytes":  1217472,
+                           "lastModifiedLocal":  "2026-05-01T09:26:28"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Evaluation - Park details.png",
+                           "sha256":  "02651f8c174d8b9b783b16d594411f8cc79e6967577a094aef4ff34825bf0893",
+                           "bytes":  349388,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Evaluation - Park details-1.png",
+                           "sha256":  "707190533a8b86157dc4e3a235b561e196de123e9c0e14750f3a454ed1ea7302",
+                           "bytes":  559665,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Evaluation History.png",
+                           "sha256":  "35f3969e6e11fecaa9b49ab821e0a12f11369bc8d3fc3ccf5e35c51cc839f733",
+                           "bytes":  366755,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Evaluation.png",
+                           "sha256":  "c4bf6fec32283be7a719432c10c8b4c87acc0c13ff1f36b79c3ddbdfd837c00b",
+                           "bytes":  239983,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Manage Preference.png",
+                           "sha256":  "719e310b9484d46d9fd2f6468fd7b02ac175ddbf2e6290ca4d2b08d8d1d215f8",
+                           "bytes":  256807,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Marking Criteria - Award details.png",
+                           "sha256":  "1b3f3555a6ebea4e12448020d879c286645f58ab3fecb6e48dea47e7b8e4073c",
+                           "bytes":  1106945,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Marking Criteria.png",
+                           "sha256":  "4778b05fc5c81c8f4d9ca5f6d6bfb2eb01749adcd69be4be22c17d8c7a46b086",
+                           "bytes":  124342,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Assessor - Schedule Visit.png",
+                           "sha256":  "fedf3ff87e68beb15147f1d89e660299fd661e420f1f66dae368f755e5c9d705",
+                           "bytes":  268150,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Message.png",
+                           "sha256":  "6ff7c152f4d03afc3288f4ab29960cfe33cd7ec500a48152e7f567eba7cc304c",
+                           "bytes":  285310,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Assessor Allocation - Application List.png",
+                           "sha256":  "300ad6f739faa0ad387c7e81d710d14f3a3fee45bf6ef95e611b434220862841",
+                           "bytes":  331353,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Assessor Management.png",
+                           "sha256":  "05370612d1a9d2442c4c085b5dd55bdd3474d6486a29b48d4a25c3887b1d2385",
+                           "bytes":  337379,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award management - Award category.png",
+                           "sha256":  "6f685e5f24389a4655d7a16003b4e6ba5db609949f63748e1eb7254c34b28acc",
+                           "bytes":  673795,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award Management - Finalist Comparison.png",
+                           "sha256":  "02a4381333984979000bff748de7f01445c7fc3c7ff5782dffbe4ec1fb5058fa",
+                           "bytes":  506852,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award Management - Recent Applications.png",
+                           "sha256":  "cc36bccb68bfa589c1041b9fa4d11ec1fb4586139268fe8e00ab53afe5c759e3",
+                           "bytes":  318493,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award Management - Shortlisted Parks.png",
+                           "sha256":  "feef7d498d39f01bea0b148399aa8fe65f9e8c7898640167206a7a5b9bbf4043",
+                           "bytes":  295292,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award management - User role Management - Judges.png",
+                           "sha256":  "b9e27712902d03473e0079a86ccbbd57350e95c31c614affa597505fd299aef5",
+                           "bytes":  272971,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Award management - User role Management - Judges-1.png",
+                           "sha256":  "c2536cb2f76a5f2a095fa150e1c5d345cc653b1cde1f9fc2ba67fd17f89c3a67",
+                           "bytes":  382037,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Coverage Map.png",
+                           "sha256":  "ed214c240dba5233140aab40b75186f84421d73927c61ad170995a9c7263d58f",
+                           "bytes":  174660,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Dashboard.png",
+                           "sha256":  "15f44f4f7cff0b77fbef30f739a13d1a89c244f1c314c07c09187a00d8992693",
+                           "bytes":  431532,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Document Archieve.png",
+                           "sha256":  "22655d8f1a86e1d27cf57bf092ddec6c4d99b2596ee5592d869dc811d9ac95ba",
+                           "bytes":  458481,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super admin - Management - Category details.png",
+                           "sha256":  "b4924b158e6dfc302c9af4f7cb3245b61ca281c9c59581676065fea9fb32728d",
+                           "bytes":  513463,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Park details.png",
+                           "sha256":  "5df4c1188abaebd25a9c9048da1ccf50b00c05e0718cb74b6cbc3a889fa89d01",
+                           "bytes":  1065047,
+                           "lastModifiedLocal":  "2026-05-01T09:26:26"
+                       },
+                       {
+                           "path":  "docs/figma/Super Admin - Past Winners.png",
+                           "sha256":  "e1535a7781f6ae2ae1e3ca8185b9ea91a112f4e9599afd3d1fccd9e99332ba33",
+                           "bytes":  314517,
+                           "lastModifiedLocal":  "2026-05-01T09:26:27"
+                       }
+                   ],
+    "notes":  [
+                  "Hydrated from local docs/figma-manifest.json and docs/figma/*.png.",
+                  "Figma version/lastModified are null because live Figma metadata was not checked in this offline hydration.",
+                  "Current manifest does not provide one-to-one node-id to PNG mappings for every export; ui-slice-map.yaml records family-level uncertainty where needed."
+              ]
+}

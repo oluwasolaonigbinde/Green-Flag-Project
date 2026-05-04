@@ -1,0 +1,26 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "awardCategories": [
+    {
+      "code": "STANDARD_GREEN_FLAG",
+      "label": "Standard Green Flag Award",
+      "operationalStatus": "OPERATIONAL"
+    },
+    {
+      "code": "COMMUNITY",
+      "label": "Community",
+      "operationalStatus": "BLOCKED_PENDING_CRITERIA"
+    },
+    {
+      "code": "HERITAGE",
+      "label": "Heritage",
+      "operationalStatus": "BLOCKED_PENDING_CRITERIA"
+    },
+    {
+      "code": "GROUP",
+      "label": "Group",
+      "operationalStatus": "BLOCKED_PENDING_CRITERIA"
+    }
+  ]
+}

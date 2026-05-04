@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: green_flag_local
+      POSTGRES_USER: green_flag
+      POSTGRES_PASSWORD: green_flag_local_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - green_flag_postgres:/var/lib/postgresql/data
+
+volumes:
+  green_flag_postgres:
