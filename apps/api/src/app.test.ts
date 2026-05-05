@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { globalAdminSessionFixture } from "@green-flag/contracts";
 import { buildApp } from "./app.js";
+import { ApiError } from "./auth.js";
 
 describe("foundation api", () => {
   it("returns health", async () => {
@@ -16,6 +18,51 @@ describe("foundation api", () => {
     expect(response.json()).toMatchObject({
       slice: "S00-operating-layer-and-contract-build-baseline",
       episodeFirst: true
+    });
+  });
+
+  it("returns the resolved session profile when auth is available", async () => {
+    const app = buildApp({
+      resolveSession: async () => globalAdminSessionFixture
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/session",
+      headers: {
+        authorization: "Bearer test-token"
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      actor: {
+        role: "SUPER_ADMIN",
+        redactionProfile: "super_admin_full_access"
+      },
+      mfaSatisfied: true,
+      authenticationSource: "cognito"
+    });
+  });
+
+  it("returns a stable error envelope when auth is missing", async () => {
+    const app = buildApp({
+      resolveSession: async () => {
+        throw new ApiError("unauthorized", 401, "Missing Authorization header.");
+      }
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/session"
+    });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.json()).toMatchObject({
+      error: {
+        code: "unauthorized",
+        message: "Missing Authorization header."
+      }
     });
   });
 });

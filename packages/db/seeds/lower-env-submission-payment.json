@@ -1,0 +1,22 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "submissions": [
+    {
+      "id": "18181818-1818-4181-8181-181818181818",
+      "applicationId": "11111111-1111-4111-8111-111111111111",
+      "status": "SUBMITTED",
+      "documentState": "management_plan_uploaded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "17171717-1717-4171-8171-171717171717",
+      "applicationId": "11111111-1111-4111-8111-111111111111",
+      "status": "PENDING",
+      "amount": "external_value_unavailable",
+      "purchaseOrderNumber": "PO-LOWER-ENV-001",
+      "availableInPortal": true
+    }
+  ]
+}

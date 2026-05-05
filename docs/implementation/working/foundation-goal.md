@@ -1,9 +1,16 @@
-# Foundation Goal Prompt
+# Foundation Goal
 
 ```text
-/goal Build the Green Flag foundation track as a persistent manager/orchestrator run.
+/goal Continue the Green Flag implementation from the completed Slice 0 foundation.
 
-Read AGENTS.md first. Then read the repo's implementation source of truth:
+Context:
+- Slice 0 is DONE_FULL.
+- Foundation commit: 0ba3ff7 chore: complete slice 0 foundation scaffold.
+- Slice 1 is the next TODO backlog item.
+- The repo already has a runnable pnpm TypeScript monorepo scaffold with apps/api, apps/web, packages/contracts, packages/db, packages/shared, OpenAPI, and migration/seed checks.
+
+Read first:
+- AGENTS.md
 - docs/implementation/agent-operating-model.md
 - docs/implementation/slice-backlog.yaml
 - docs/implementation/system_state.md
@@ -12,82 +19,43 @@ Read AGENTS.md first. Then read the repo's implementation source of truth:
 - docs/implementation/working/current-plan.md
 - docs/implementation/working/current-plan-review.md
 - docs/implementation/working/current-implementation-review.md
+- docs/implementation/commands/*.md
 - docs/implementation/slice-contracts/
-- docs/implementation/delivery-records/templates/delivery-record-template.md
+- docs/implementation/delivery-records/
 - docs/source/
-- docs/figma-manifest.json and docs/figma-manifest.md first, then only the mapped files in docs/figma/ that are relevant to the current slice
+- docs/figma-manifest.json and docs/figma-manifest.md, then only the docs/figma files mapped to the current slice
 
-Meaning of "foundation track":
-Move this repo from docs-only to a real runnable scaffold with a contract/workflow base that future slices can build on. Do not treat this as docs cleanup.
+Operating mode:
+- Act as a persistent manager/orchestrator.
+- Follow the repo workflow exactly: orient/status, plan-next-slice if no active slice exists, review contract, build, review implementation, close only when gates pass.
+- Do not skip backlog order or work on optional demo slices unless a human explicitly instructs it.
+- At most one slice may be CONTRACT_REVIEW, IN_PROGRESS, or REOPENED_FOR_UI.
 
-Operating rules:
-- Treat this as one persistent goal, not a one-off prompt.
-- The backlog decides legal work. Do not guess scope.
-- Continue across slices only while the next slice is the next legal backlog item, its dependencies are satisfied, and no unresolved external business data, approvals, or production values are required.
-- Do not stop just because Slice 0 passes if there is more backlog-legal foundation work that can be completed safely.
-- Stop before any slice that would force inventing scoring bands, fees, VAT, legal wording, provider credentials, KBT approvals, or similar unresolved external values.
-- Do not re-read the same large docs repeatedly; extract the needed facts once, then work from the merged facts.
-- Keep chat updates short; write the real detail into repo docs.
-- Use the existing command docs under docs/implementation/commands/ when planning, reviewing, building, and closing slices. Do not invent a parallel workflow.
+Subagents:
+- Use read-only subagents once per major cycle for repo state, architecture mapping, contracts/read-models, security/redaction, and QA.
+- Merge findings first; the manager/orchestrator performs all edits sequentially.
+- If subagents are unavailable, continue solo and record that limitation.
 
-Use subagents once each, read-only, then merge and proceed sequentially:
-1. Repo inspection
-2. Architecture mapping
-3. Contracts/read-model derivation
-4. Security/redaction
-5. QA planning
+Implementation rules:
+- Build only the current frozen contract.
+- If no active slice exists, create and review the next slice contract before coding.
+- Use the existing pnpm TypeScript scaffold and conventions.
+- assessment_episodes is the lifecycle root; applications owns applicant package state only.
+- Enforce Mystery Shop secrecy server-side; RBAC, redaction, and audit are backend responsibilities.
+- Do not invent fees, VAT, scoring criteria, score bands, legal wording, provider credentials, KBT approvals, or other unresolved production values.
+- If frontend screens are missing but backend/API is clear, proceed with contracts, mocks, stubs, and explicit frontend gap records.
 
-Subagent rules:
-- Read-only only.
-- No parallel edits.
-- No duplicate subagents for the same question.
-- Do not ask a second subagent to re-check facts the first one already settled.
-- The manager/orchestrator performs all edits sequentially after merging subagent findings.
-
-Implementation expectation:
-- Slice 0 outcome is non-negotiable: if the repo does not already have the scaffold, produce actual app/package structure, baseline scripts, contract conventions, and delivery-record workflow.
-- After that, continue through later backlog-legal slices only if the scaffold and checks are stable.
-- Build only what the backlog allows in order.
-
-Default scaffold stack if no stronger repo convention exists:
-- pnpm workspace
-- TypeScript
-- apps/web: Next.js App Router
-- apps/api: Fastify TypeScript API
-- packages/contracts: shared TypeScript/Zod DTOs, enums, and fixtures
-- packages/db: PostgreSQL/PostGIS migration/schema package, preferably Drizzle or SQL migrations if no existing convention exists
-- packages/shared: shared utilities/types
-- Vitest for tests
-- ESLint/Prettier where practical
-- docker-compose for local PostgreSQL/PostGIS only if no existing dev DB setup exists
-
-Phase guidance:
-1. Real scaffold first. If no stronger repo convention exists, create the actual runnable monorepo scaffold, root scripts, TypeScript config, and package boundaries needed for the foundation.
-2. Contracts next. Create canonical enums, types, and read-model fixtures from the hydrated docs. Treat UI-derived shapes as provisional where the docs do not fully settle them.
-3. API/DB/web foundations next only when the slice order allows and the needed docs evidence exists. Do not invent production business values or unresolved external integrations.
-4. Use the repo's workflow files to record current plan, contract review, implementation review, delivery record, and system state updates.
-
-Hard rules:
-- assessment_episodes is the lifecycle root.
-- applications owns applicant package state only.
-- Mystery Shop secrecy is server-side policy across APIs, read models, notifications, documents, messages, exports, search, and status labels.
-- UI evidence shapes layout and read models only; product and architecture docs win on business rules.
-- Do not implement or invent production fees, VAT values, official scoring criteria, applicant score bands, legal wording, provider credentials, or KBT approvals.
-- Do not create parallel workflow docs if the existing docs/implementation conventions already cover it.
+Continuation policy:
+- Continue only while the next slice is the first eligible TODO, dependencies are satisfied, source truth is precise enough, and no unresolved external value or approval is needed.
+- Stop if the contract cannot be made precise or if implementation shows the contract is wrong; return to CONTRACT_REVIEW instead of improvising.
 
 Validation:
-- Run install/build/typecheck/test/lint/contract checks where available or newly created.
-- Fix failures caused by this work.
-- If a command cannot run, record exactly why and what should be run next.
-- Use one review subagent after implementation to compare the diff against the plan and score the result from 1-10 across scaffold quality, architecture alignment, testability, Mystery redaction safety, and future-agent usability.
-- If any score is below 8, fix the issues and review again.
+- Run available relevant checks; use Corepack if pnpm is unavailable.
+- Review the diff against the frozen contract and score scaffold fit, architecture alignment, testability, RBAC/audit/redaction safety, and future-agent usability.
+- Fix anything below 8 before closing the slice.
 
-Workflow/delivery record:
-- Update the current plan/system state before implementation where the repo workflow requires it.
-- Update review notes after planning/review passes.
-- Update the delivery record at the end using the repo's delivery-record convention.
-- Record files changed, commands run, tests/checks passed/failed, decisions made, inferred/provisional assumptions, blockers, and the next recommended /goal.
-
-Stop condition:
-Stop only when the current goal is materially complete or a real blocker is reached. Before stopping, give a short report with files changed, decisions made, tests/checks run, blockers, and the next recommended /goal.
+Workflow and delivery:
+- Update current plan/system state/review notes where the repo workflow requires it.
+- Update the delivery record at the end.
+- Commit each closed slice separately, push when checks pass, and report files, checks, decisions, assumptions, blockers, and next recommended /goal.
 ```

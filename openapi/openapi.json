@@ -3,7 +3,7 @@
   "info": {
     "title": "Green Flag Award Foundation API",
     "version": "0.0.0",
-    "description": "Slice 0 foundation API skeleton. Business workflows are implemented by later backlog slices."
+    "description": "Slice 3 registration API plus identity/RBAC/audit foundation endpoints."
   },
   "paths": {
     "/health": {
@@ -41,17 +41,1902 @@
           }
         }
       }
+    },
+    "/api/v1/session": {
+      "get": {
+        "operationId": "getSessionProfile",
+        "summary": "Return the resolved authenticated actor profile.",
+        "responses": {
+          "200": {
+            "description": "Resolved session profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Identity dependency missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/registrations": {
+      "post": {
+        "operationId": "submitRegistration",
+        "summary": "Submit a park registration with eligibility and duplicate checks.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationSubmissionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration accepted or eligibility failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationSubmissionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate acknowledgement required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/registrations/{registrationId}": {
+      "get": {
+        "operationId": "getRegistration",
+        "summary": "Return a registration summary.",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration summary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registration not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/registrations/{registrationId}/location-lookup": {
+      "post": {
+        "operationId": "resolveRegistrationLocation",
+        "summary": "Return mock W3W, OS, and ONS location suggestions requiring applicant confirmation.",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationLocationLookupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location suggestion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationLocationSuggestion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/registrations/{registrationId}/verify-email": {
+      "post": {
+        "operationId": "verifyRegistrationEmail",
+        "summary": "Verify registration email token.",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailVerificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationLandingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/registration-review-queue": {
+      "get": {
+        "operationId": "listRegistrationReviews",
+        "summary": "List verified registrations awaiting admin review.",
+        "responses": {
+          "200": {
+            "description": "Registration review queue.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRegistrationReviewQueueResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/registration-review-queue/{registrationId}/approve": {
+      "post": {
+        "operationId": "approveRegistration",
+        "summary": "Approve a verified registration.",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRegistrationDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Park activation response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkActivationResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid transition.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/registration-review-queue/{registrationId}/reject": {
+      "post": {
+        "operationId": "rejectRegistration",
+        "summary": "Reject a verified registration.",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRegistrationDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Park activation response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkActivationResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid transition.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/dashboard": {
+      "get": {
+        "operationId": "getApplicantDashboard",
+        "summary": "Return applicant dashboard items with safe display statuses.",
+        "responses": {
+          "200": {
+            "description": "Applicant dashboard.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicantDashboardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications": {
+      "post": {
+        "operationId": "createOrContinueApplication",
+        "summary": "Create or continue a Full Assessment application draft.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing application draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDraftResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created application draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDraftResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}": {
+      "get": {
+        "operationId": "getApplicationDraft",
+        "summary": "Return a grouped application draft.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Application draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDraftResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Application not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/sections/{sectionKey}": {
+      "patch": {
+        "operationId": "autosaveApplicationSection",
+        "summary": "Autosave an application section with optimistic concurrency.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sectionKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutosaveApplicationSectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autosave result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutosaveApplicationSectionResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/previous-feedback-response": {
+      "post": {
+        "operationId": "recordPreviousFeedbackResponseDraft",
+        "summary": "Record a draft response to previous judge feedback.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviousFeedbackResponseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Previous feedback response draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviousFeedbackResponseDraft"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents": {
+      "get": {
+        "operationId": "listApplicationDocuments",
+        "summary": "listApplicationDocuments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDocumentsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions": {
+      "post": {
+        "operationId": "createDocumentUploadSession",
+        "summary": "createDocumentUploadSession",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentUploadSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions/{sessionId}/chunks/{chunkIndex}": {
+      "patch": {
+        "operationId": "acknowledgeDocumentUploadChunk",
+        "summary": "acknowledgeDocumentUploadChunk",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentChunkAcknowledgement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions/{sessionId}/complete": {
+      "post": {
+        "operationId": "completeDocumentUpload",
+        "summary": "completeDocumentUpload",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteDocumentUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents/{documentId}/access": {
+      "get": {
+        "operationId": "getSignedDocumentAccess",
+        "summary": "getSignedDocumentAccess",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentAccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/documents/{documentId}/versions": {
+      "get": {
+        "operationId": "listDocumentVersions",
+        "summary": "listDocumentVersions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentVersionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/submit": {
+      "post": {
+        "operationId": "submitApplication",
+        "summary": "Submit an applicant package and create a lower-env invoice shell.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitApplicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSubmissionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/submission": {
+      "get": {
+        "operationId": "getApplicationSubmission",
+        "summary": "Return submitted application and payment state.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSubmissionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/payment-summary": {
+      "get": {
+        "operationId": "getApplicantPaymentSummary",
+        "summary": "Return applicant-visible invoice and payment summary.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentSummaryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/applications/{applicationId}/purchase-order": {
+      "patch": {
+        "operationId": "recordPurchaseOrderPreference",
+        "summary": "Record PO number or no-PO declaration for an invoice.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseOrderPreference"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentSummaryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payments/{invoiceId}/mark-paid": {
+      "post": {
+        "operationId": "markPaymentPaidManually",
+        "summary": "Manually mark a lower-env invoice as paid.",
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPaymentActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payments/{invoiceId}/override-block": {
+      "post": {
+        "operationId": "overridePaymentBlock",
+        "summary": "Apply a documented Super Admin payment block override.",
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPaymentActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/payments/deadline-check": {
+      "post": {
+        "operationId": "runPaymentDeadlineCheck",
+        "summary": "Run lower-env payment deadline block checks.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentDeadlineCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentDeadlineCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorised",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/dashboard-summary": {
+      "get": {
+        "operationId": "getAdminDashboardSummary",
+        "summary": "Return admin dashboard queue counts and safe operational metrics.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDashboardSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/queues/registrations": {
+      "get": {
+        "operationId": "listAdminRegistrationQueue",
+        "summary": "List registration operational queue rows.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRegistrationQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/queues/applications": {
+      "get": {
+        "operationId": "listAdminApplicationQueue",
+        "summary": "List application operational queue rows.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApplicationQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/queues/payments": {
+      "get": {
+        "operationId": "listAdminPaymentQueue",
+        "summary": "List payment operational queue rows.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/queues/documents": {
+      "get": {
+        "operationId": "listAdminDocumentQueue",
+        "summary": "List document operational queue rows.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDocumentQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/applications/{applicationId}": {
+      "get": {
+        "operationId": "getAdminParkApplicationDetail",
+        "summary": "Return admin park/application detail read model.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApplicationDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/applications/{applicationId}/allocation-readiness": {
+      "get": {
+        "operationId": "getAdminAllocationReadinessPreview",
+        "summary": "Return safe allocation readiness prerequisites without candidate generation.",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAllocationReadinessPreviewResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dependency missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/profile": {
+      "get": {
+        "operationId": "getAssessorSelfProfile",
+        "summary": "Return the authenticated assessor profile read model.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorSelfProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/profile/preferences": {
+      "patch": {
+        "operationId": "updateAssessorSelfPreferences",
+        "summary": "Update assessor self-service preferences.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/profile/availability": {
+      "patch": {
+        "operationId": "updateAssessorSelfAvailability",
+        "summary": "Update assessor availability declarations.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/profile/capacity": {
+      "patch": {
+        "operationId": "updateAssessorSelfCapacity",
+        "summary": "Update assessor capacity declarations.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/assessors": {
+      "get": {
+        "operationId": "listAdminAssessorProfiles",
+        "summary": "List admin assessor profile read models.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAssessorListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAdminAssessorProfile",
+        "summary": "Create an assessor profile linked to an internal user.",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/assessors/{assessorId}": {
+      "get": {
+        "operationId": "getAdminAssessorProfile",
+        "summary": "Return admin assessor profile detail.",
+        "parameters": [
+          {
+            "name": "assessorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAssessorDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateAdminAssessorProfile",
+        "summary": "Update admin assessor profile fields.",
+        "parameters": [
+          {
+            "name": "assessorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/assessors/{assessorId}/disable": {
+      "post": {
+        "operationId": "disableAdminAssessorProfile",
+        "summary": "Disable an assessor profile.",
+        "parameters": [
+          {
+            "name": "assessorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorProfileCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "HealthResponse": {
         "type": "object",
-        "required": ["status", "service", "version"],
+        "required": [
+          "status",
+          "service",
+          "version"
+        ],
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["ok"]
+            "enum": [
+              "ok"
+            ]
           },
           "service": {
             "type": "string"
@@ -63,7 +1948,12 @@
       },
       "ContractMetadataResponse": {
         "type": "object",
-        "required": ["slice", "episodeFirst", "safeDisplayStatuses", "forbiddenProductionValues"],
+        "required": [
+          "slice",
+          "episodeFirst",
+          "safeDisplayStatuses",
+          "forbiddenProductionValues"
+        ],
         "properties": {
           "slice": {
             "type": "string"
@@ -85,13 +1975,228 @@
           }
         }
       },
+      "ScopeRef": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ActorContext": {
+        "type": "object",
+        "required": [
+          "actorId",
+          "cognitoSubject",
+          "role",
+          "scopes",
+          "redactionProfile"
+        ],
+        "properties": {
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cognitoSubject": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScopeRef"
+            }
+          },
+          "redactionProfile": {
+            "type": "string"
+          }
+        }
+      },
+      "InternalUserSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "cognitoSubject",
+          "displayName",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cognitoSubject": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "DISABLED",
+              "PENDING_LINK"
+            ]
+          },
+          "mfaSatisfied": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RoleAssignment": {
+        "type": "object",
+        "required": [
+          "id",
+          "internalUserId",
+          "role",
+          "scope",
+          "status",
+          "redactionProfile"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "internalUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/ScopeRef"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "redactionProfile": {
+            "type": "string"
+          }
+        }
+      },
+      "SessionProfileResponse": {
+        "type": "object",
+        "required": [
+          "actor",
+          "internalUser",
+          "roleAssignments",
+          "mfaSatisfied",
+          "authenticationSource"
+        ],
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/ActorContext"
+          },
+          "internalUser": {
+            "$ref": "#/components/schemas/InternalUserSummary"
+          },
+          "roleAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleAssignment"
+            }
+          },
+          "mfaSatisfied": {
+            "type": "boolean"
+          },
+          "authenticationSource": {
+            "type": "string",
+            "enum": [
+              "cognito"
+            ]
+          }
+        }
+      },
+      "AuditEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "actor",
+          "action",
+          "entityType",
+          "request",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/ActorContext"
+          },
+          "action": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "beforeState": {},
+          "afterState": {},
+          "request": {
+            "type": "object",
+            "required": [
+              "requestId"
+            ],
+            "properties": {
+              "requestId": {
+                "type": "string"
+              },
+              "idempotencyKey": {
+                "type": "string"
+              },
+              "ipAddress": {
+                "type": "string"
+              },
+              "userAgent": {
+                "type": "string"
+              }
+            }
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ErrorResponse": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
           "error": {
             "type": "object",
-            "required": ["code", "message"],
+            "required": [
+              "code",
+              "message"
+            ],
             "properties": {
               "code": {
                 "type": "string"
@@ -101,6 +2206,1453 @@
               },
               "details": {}
             }
+          }
+        }
+      },
+      "RegistrationEligibilityInput": {
+        "type": "object",
+        "required": [
+          "publiclyAccessible",
+          "freeToEnter",
+          "minimumSizeConfirmed"
+        ],
+        "properties": {
+          "publiclyAccessible": {
+            "type": "boolean"
+          },
+          "freeToEnter": {
+            "type": "boolean"
+          },
+          "minimumSizeConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RegistrationEligibilityResult": {
+        "type": "object",
+        "required": [
+          "eligible",
+          "failedCriteria"
+        ],
+        "properties": {
+          "eligible": {
+            "type": "boolean"
+          },
+          "failedCriteria": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "publicly_accessible",
+                "free_to_enter",
+                "minimum_size"
+              ]
+            }
+          }
+        }
+      },
+      "DuplicateWarning": {
+        "type": "object",
+        "required": [
+          "hasPotentialDuplicate",
+          "matchedFields",
+          "acknowledged"
+        ],
+        "properties": {
+          "hasPotentialDuplicate": {
+            "type": "boolean"
+          },
+          "matchedFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "park_name",
+                "postcode",
+                "address"
+              ]
+            }
+          },
+          "acknowledged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RegistrationLocationLookupRequest": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "postcode": {
+            "type": "string"
+          },
+          "w3wAddress": {
+            "type": "string"
+          }
+        }
+      },
+      "RegistrationLocationSuggestion": {
+        "type": "object",
+        "required": [
+          "source",
+          "label",
+          "latitude",
+          "longitude",
+          "w3wAddress",
+          "requiresApplicantConfirmation"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "w3wAddress": {
+            "type": "string"
+          },
+          "parkNameSuggestion": {
+            "type": "string"
+          },
+          "sizeBand": {
+            "type": "string"
+          },
+          "localAuthority": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "constituency": {
+            "type": "string"
+          },
+          "requiresApplicantConfirmation": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "RegistrationSubmissionRequest": {
+        "type": "object",
+        "required": [
+          "parkName",
+          "organisationName",
+          "contactName",
+          "contactEmail",
+          "addressLine1",
+          "town",
+          "country",
+          "eligibility",
+          "location"
+        ],
+        "properties": {
+          "parkName": {
+            "type": "string"
+          },
+          "organisationName": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "addressLine1": {
+            "type": "string"
+          },
+          "town": {
+            "type": "string"
+          },
+          "postcode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "eligibility": {
+            "$ref": "#/components/schemas/RegistrationEligibilityInput"
+          },
+          "duplicateAcknowledged": {
+            "type": "boolean"
+          },
+          "location": {
+            "$ref": "#/components/schemas/RegistrationLocationLookupRequest"
+          }
+        }
+      },
+      "RegistrationSubmissionResponse": {
+        "type": "object",
+        "required": [
+          "registrationId",
+          "status",
+          "eligibility",
+          "duplicateWarning",
+          "verificationRequired",
+          "notificationIntents"
+        ],
+        "properties": {
+          "registrationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "eligibility": {
+            "$ref": "#/components/schemas/RegistrationEligibilityResult"
+          },
+          "duplicateWarning": {
+            "$ref": "#/components/schemas/DuplicateWarning"
+          },
+          "verificationRequired": {
+            "type": "boolean"
+          },
+          "notificationIntents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RegistrationSummary": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RegistrationSubmissionResponse"
+          },
+          {
+            "type": "object",
+            "required": [
+              "parkName",
+              "organisationName",
+              "contactEmail",
+              "submittedAt"
+            ],
+            "properties": {
+              "parkName": {
+                "type": "string"
+              },
+              "organisationName": {
+                "type": "string"
+              },
+              "contactEmail": {
+                "type": "string",
+                "format": "email"
+              },
+              "submittedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      },
+      "EmailVerificationRequest": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "VerificationLandingResponse": {
+        "type": "object",
+        "required": [
+          "registrationId",
+          "status",
+          "emailVerified",
+          "nextStep"
+        ],
+        "properties": {
+          "registrationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "nextStep": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminRegistrationReviewQueueResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "AdminRegistrationDecisionRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ParkActivationResponse": {
+        "type": "object",
+        "required": [
+          "registrationId",
+          "registrationStatus",
+          "parkStatus",
+          "notificationIntents"
+        ],
+        "properties": {
+          "registrationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "registrationStatus": {
+            "type": "string"
+          },
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkStatus": {
+            "type": "string"
+          },
+          "notificationIntents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ApplicantDashboardResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicantDashboardItem"
+            }
+          }
+        }
+      },
+      "ApplicantDashboardItem": {
+        "type": "object",
+        "required": [
+          "episodeId",
+          "parkId",
+          "parkName",
+          "cycleYear",
+          "category",
+          "displayStatus",
+          "completionPercent",
+          "invoice",
+          "result",
+          "allowedActions"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkName": {
+            "type": "string"
+          },
+          "cycleYear": {
+            "type": "integer"
+          },
+          "category": {
+            "type": "string"
+          },
+          "displayStatus": {
+            "type": "string"
+          },
+          "applicationStatus": {
+            "type": "string"
+          },
+          "episodeStatus": {
+            "type": "string"
+          },
+          "completionPercent": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "invoice": {
+            "type": "object"
+          },
+          "result": {
+            "type": "object"
+          },
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateApplicationRequest": {
+        "type": "object",
+        "required": [
+          "parkId",
+          "episodeId"
+        ],
+        "properties": {
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplicationSectionDraft": {
+        "type": "object",
+        "required": [
+          "sectionKey",
+          "status",
+          "completionPercent",
+          "version",
+          "fields"
+        ],
+        "properties": {
+          "sectionKey": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "completionPercent": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "fields": {
+            "type": "object"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApplicationDraftResponse": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "episodeId",
+          "parkId",
+          "status",
+          "displayStatus",
+          "completionPercent",
+          "version",
+          "sections",
+          "allowedActions",
+          "updatedAt"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "displayStatus": {
+            "type": "string"
+          },
+          "completionPercent": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationSectionDraft"
+            }
+          },
+          "allowedActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AutosaveApplicationSectionRequest": {
+        "type": "object",
+        "required": [
+          "clientVersion",
+          "fields"
+        ],
+        "properties": {
+          "clientVersion": {
+            "type": "integer"
+          },
+          "fields": {
+            "type": "object"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "AutosaveApplicationSectionResponse": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "section",
+          "applicationStatus",
+          "completionPercent",
+          "version"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "section": {
+            "$ref": "#/components/schemas/ApplicationSectionDraft"
+          },
+          "applicationStatus": {
+            "type": "string"
+          },
+          "completionPercent": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "PreviousFeedbackResponseRequest": {
+        "type": "object",
+        "required": [
+          "clientVersion",
+          "responseText"
+        ],
+        "properties": {
+          "clientVersion": {
+            "type": "integer"
+          },
+          "responseText": {
+            "type": "string"
+          }
+        }
+      },
+      "PreviousFeedbackResponseDraft": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "responseText",
+          "version",
+          "updatedAt"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "responseText": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DocumentAsset": {
+        "type": "object",
+        "required": [
+          "documentId",
+          "applicationId",
+          "episodeId",
+          "parkId",
+          "documentType",
+          "filename",
+          "contentType",
+          "byteSize",
+          "sha256",
+          "storageProvider",
+          "storageKey",
+          "status",
+          "visibility",
+          "version",
+          "isCurrent",
+          "uploadedByActorId",
+          "scanStatus",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentType": {
+            "type": "string",
+            "enum": [
+              "management_plan",
+              "supporting_document"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "byteSize": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "storageProvider": {
+            "type": "string"
+          },
+          "storageKey": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "uploadedByActorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scanStatus": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApplicationDocumentsResponse": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parkId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentCompletionStatus": {
+            "type": "string"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "DocumentUploadSession": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "byteSize": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "totalChunks": {
+            "type": "integer"
+          },
+          "acceptedChunks": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "progressPercent": {
+            "type": "integer"
+          },
+          "uploadUrlTemplate": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "DocumentChunkAcknowledgement": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "acceptedChunkIndex": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "progressPercent": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "CompleteDocumentUploadResponse": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document": {
+            "$ref": "#/components/schemas/DocumentAsset"
+          },
+          "duplicateOfDocumentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "archivedDocumentId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SignedDocumentAccessResponse": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          }
+        }
+      },
+      "DocumentVersionsResponse": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentAsset"
+            }
+          }
+        }
+      },
+      "PurchaseOrderPreference": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "noPurchaseOrderDeclared": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "purchaseOrderNumber"
+            ]
+          },
+          {
+            "required": [
+              "noPurchaseOrderDeclared"
+            ]
+          }
+        ]
+      },
+      "SubmitApplicationRequest": {
+        "type": "object",
+        "required": [
+          "clientVersion",
+          "purchaseOrder"
+        ],
+        "properties": {
+          "clientVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "purchaseOrder": {
+            "$ref": "#/components/schemas/PurchaseOrderPreference"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 160
+          }
+        }
+      },
+      "InvoiceSummaryResponse": {
+        "type": "object",
+        "required": [
+          "invoiceId",
+          "applicationId",
+          "episodeId",
+          "status",
+          "amount",
+          "dueAt",
+          "availableInPortal",
+          "notificationIntents"
+        ],
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "OVERDUE_BLOCKED",
+              "WAIVED"
+            ]
+          },
+          "amount": {
+            "type": "string",
+            "const": "external_value_unavailable"
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableInPortal": {
+            "type": "boolean"
+          },
+          "notificationIntents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "application_submitted_email",
+                "invoice_available_email",
+                "payment_overdue_email"
+              ]
+            }
+          }
+        }
+      },
+      "PaymentSummaryResponse": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "invoice",
+          "purchaseOrder",
+          "manuallyMarkedPaid",
+          "overrideApplied",
+          "blockedForAllocation",
+          "updatedAt"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceSummaryResponse"
+          },
+          "purchaseOrder": {
+            "$ref": "#/components/schemas/PurchaseOrderPreference"
+          },
+          "manuallyMarkedPaid": {
+            "type": "boolean"
+          },
+          "overrideApplied": {
+            "type": "boolean"
+          },
+          "blockedForAllocation": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApplicationSubmissionResponse": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "episodeId",
+          "applicationStatus",
+          "episodeStatus",
+          "submittedAt",
+          "documentState",
+          "invoice",
+          "payment"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applicationStatus": {
+            "type": "string",
+            "enum": [
+              "IN_PROGRESS",
+              "READY_TO_SUBMIT",
+              "SUBMITTED",
+              "SUBMITTED_WITH_MISSING_PLAN"
+            ]
+          },
+          "episodeStatus": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "documentState": {
+            "type": "string",
+            "enum": [
+              "management_plan_uploaded",
+              "management_plan_missing"
+            ]
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceSummaryResponse"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSummaryResponse"
+          }
+        }
+      },
+      "AdminPaymentActionRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "externalReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 160
+          }
+        }
+      },
+      "AdminPaymentActionResponse": {
+        "type": "object",
+        "required": [
+          "invoiceId",
+          "status",
+          "manuallyMarkedPaid",
+          "overrideApplied",
+          "blockedForAllocation",
+          "reason",
+          "updatedAt"
+        ],
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PAID",
+              "OVERDUE_BLOCKED",
+              "WAIVED"
+            ]
+          },
+          "manuallyMarkedPaid": {
+            "type": "boolean"
+          },
+          "overrideApplied": {
+            "type": "boolean"
+          },
+          "blockedForAllocation": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentDeadlineCheckRequest": {
+        "type": "object",
+        "required": [
+          "asOf"
+        ],
+        "properties": {
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 16,
+            "maxLength": 160
+          }
+        }
+      },
+      "PaymentDeadlineCheckResponse": {
+        "type": "object",
+        "required": [
+          "checkedAt",
+          "blockedInvoiceIds"
+        ],
+        "properties": {
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "blockedInvoiceIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "AdminQueuePageMeta": {
+        "type": "object",
+        "required": [
+          "page",
+          "pageSize",
+          "totalItems",
+          "availableFilters"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "totalItems": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "availableFilters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AdminDashboardSummaryResponse": {
+        "type": "object",
+        "required": [
+          "generatedAt",
+          "counts",
+          "attention"
+        ],
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "counts": {
+            "type": "object"
+          },
+          "attention": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "AdminRegistrationQueueResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRegistrationReviewItem"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/AdminQueuePageMeta"
+          }
+        }
+      },
+      "AdminApplicationQueueResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/AdminQueuePageMeta"
+          }
+        }
+      },
+      "AdminPaymentQueueResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/AdminQueuePageMeta"
+          }
+        }
+      },
+      "AdminDocumentQueueResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/AdminQueuePageMeta"
+          }
+        }
+      },
+      "AdminAllocationReadinessPreviewResponse": {
+        "type": "object",
+        "required": [
+          "applicationId",
+          "episodeId",
+          "readiness",
+          "reasonCodes",
+          "candidateGenerationAvailable"
+        ],
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "readiness": {
+            "type": "string"
+          },
+          "reasonCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidateGenerationAvailable": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "AdminApplicationDetailResponse": {
+        "type": "object",
+        "required": [
+          "application",
+          "invoice",
+          "payment",
+          "documents",
+          "allocationReadiness",
+          "result"
+        ],
+        "properties": {
+          "application": {
+            "type": "object"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceSummaryResponse"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentSummaryResponse"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "allocationReadiness": {
+            "$ref": "#/components/schemas/AdminAllocationReadinessPreviewResponse"
+          },
+          "result": {
+            "type": "object"
+          }
+        }
+      },
+      "AssessorSelfProfileResponse": {
+        "type": "object",
+        "required": [
+          "profile",
+          "assignmentLoadDeferred",
+          "visitScheduleDeferred"
+        ],
+        "properties": {
+          "profile": {
+            "type": "object"
+          },
+          "assignmentLoadDeferred": {
+            "type": "boolean",
+            "const": true
+          },
+          "visitScheduleDeferred": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "AdminAssessorListResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "page"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "page": {
+            "$ref": "#/components/schemas/AdminQueuePageMeta"
+          }
+        }
+      },
+      "AdminAssessorDetailResponse": {
+        "type": "object",
+        "required": [
+          "profile",
+          "allocationCandidateGenerationAvailable",
+          "providerSyncStatus"
+        ],
+        "properties": {
+          "profile": {
+            "type": "object"
+          },
+          "allocationCandidateGenerationAvailable": {
+            "type": "boolean",
+            "const": false
+          },
+          "providerSyncStatus": {
+            "type": "string",
+            "const": "external_value_unavailable"
+          }
+        }
+      },
+      "AssessorProfileCommandResponse": {
+        "type": "object",
+        "required": [
+          "profile",
+          "auditEventId"
+        ],
+        "properties": {
+          "profile": {
+            "type": "object"
+          },
+          "auditEventId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       }

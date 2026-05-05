@@ -46,87 +46,87 @@ slices:
   - id: 1
     slug: identity-rbac-audit-foundation
     title: Identity, RBAC, and audit foundation
-    status: TODO
+    status: DONE_FULL
     depends_on: [0]
     purpose: Implement Cognito identity mapping, internal users, scoped role assignments, session/profile resolution, auth guards, and append-only audit foundations.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S01-identity-rbac-audit-foundation.md
+    delivery_record_path: docs/implementation/delivery-records/S01-identity-rbac-audit-foundation-delivery.md
 
   - id: 2
     slug: organisations-parks-locations-cycles-episodes
     title: Organisations, parks, locations, cycles, and episodes
-    status: TODO
+    status: DONE_FULL
     depends_on: [1]
     purpose: Implement canonical organisations, parks, park locations, award tracks/categories, award cycles, cycle windows, and assessment_episodes as the lifecycle root.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S02-organisations-parks-locations-cycles-episodes.md
+    delivery_record_path: docs/implementation/delivery-records/S02-organisations-parks-locations-cycles-episodes-delivery.md
 
   - id: 3
     slug: registration-eligibility-verification-admin-approval
     title: Registration, eligibility, verification, and admin approval
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [2]
     purpose: Deliver the public-to-admin registration journey, including eligibility, duplicate warning, email verification, admin approve/reject, notifications/contracts, and audit.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S03-registration-eligibility-verification-admin-approval.md
+    delivery_record_path: docs/implementation/delivery-records/S03-registration-eligibility-verification-admin-approval-delivery.md
 
   - id: 4
     slug: applicant-dashboard-application-draft-autosave
     title: Applicant dashboard and application draft/autosave
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [3]
     purpose: Deliver applicant dashboard read models, create/continue application, section draft/autosave, progress percentage, allowed actions, and mocks for incomplete UI.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S04-applicant-dashboard-application-draft-autosave.md
+    delivery_record_path: docs/implementation/delivery-records/S04-applicant-dashboard-application-draft-autosave-delivery.md
 
   - id: 5
     slug: documents-management-plan-upload-link-versioning
     title: Documents and management plan upload/link/versioning
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [4]
     purpose: Deliver management plan upload/link handling, chunked upload contracts, file asset metadata, SHA-256 duplicate detection, versioning/archive, signed access, and document visibility rules.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S05-documents-management-plan-upload-link-versioning.md
+    delivery_record_path: docs/implementation/delivery-records/S05-documents-management-plan-upload-link-versioning-delivery.md
 
   - id: 6
     slug: submission-invoice-po-payment-state
     title: Submission, invoice, PO/no-PO, and manual payment state
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [5]
     purpose: Deliver application submission, window validation, invoice creation, fee schedule hooks, PO/no-PO capture, manual mark-paid, overdue/payment block, and payment override contracts.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S06-submission-invoice-po-payment-state.md
+    delivery_record_path: docs/implementation/delivery-records/S06-submission-invoice-po-payment-state-delivery.md
 
   - id: 7
     slug: admin-read-models-queues
     title: Admin read models and operational queues
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [3, 4, 6]
     purpose: Deliver admin dashboard/read models for registrations, applications, payments, allocation readiness, documents, results, filters, pagination, and operational work queues.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S07-admin-read-models-queues.md
+    delivery_record_path: docs/implementation/delivery-records/S07-admin-read-models-queues-delivery.md
 
   - id: 8
     slug: judge-profiles-assessor-management-capacity
     title: Judge profiles, assessor management, availability, and capacity
-    status: TODO
+    status: DONE_BACKEND
     depends_on: [1, 2]
     purpose: Deliver judge/assessor profiles, accreditation status source of truth, preferences, availability/capacity, admin management surfaces, and related read models.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S08-judge-profiles-assessor-management-capacity.md
+    delivery_record_path: docs/implementation/delivery-records/S08-judge-profiles-assessor-management-capacity-delivery.md
 
   - id: 9
     slug: allocation-workflow-candidates-coi-release-acceptance
     title: Allocation workflow: candidates, COI, hold/release, and acceptance
-    status: TODO
+    status: CONTRACT_REVIEW
     depends_on: [6, 8]
     purpose: Deliver candidate queries, hard/soft COI handling, rotation flags, suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules.
     frontend_reopen_allowed: true

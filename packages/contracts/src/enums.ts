@@ -21,6 +21,20 @@ export const roleScopeTypes = [
 
 export const episodeTypes = ["FULL_ASSESSMENT", "MYSTERY_SHOP"] as const;
 
+export const parkStatuses = [
+  "PENDING_VERIFICATION",
+  "PENDING_ADMIN_REVIEW",
+  "ACTIVE",
+  "SUSPENDED",
+  "INACTIVE"
+] as const;
+
+export const awardTrackOperationalStatuses = [
+  "OPERATIONAL",
+  "DRAFT",
+  "BLOCKED_PENDING_CRITERIA"
+] as const;
+
 export const redactionProfiles = [
   "applicant_full",
   "applicant_mystery",
@@ -141,6 +155,8 @@ export const errorCodes = [
 export type RoleType = (typeof roleTypes)[number];
 export type RoleScopeType = (typeof roleScopeTypes)[number];
 export type EpisodeType = (typeof episodeTypes)[number];
+export type ParkStatus = (typeof parkStatuses)[number];
+export type AwardTrackOperationalStatus = (typeof awardTrackOperationalStatuses)[number];
 export type RedactionProfile = (typeof redactionProfiles)[number];
 export type DocumentVisibility = (typeof documentVisibilities)[number];
 export type RegistrationStatus = (typeof registrationStatuses)[number];

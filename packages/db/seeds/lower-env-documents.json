@@ -1,0 +1,32 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "documentAssets": [
+    {
+      "id": "15151515-1515-4151-8151-151515151515",
+      "applicationId": "11111111-1111-4111-8111-111111111111",
+      "documentType": "management_plan",
+      "filename": "lower-environment-management-plan.pdf",
+      "byteSize": 2400000,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "storageProvider": "lower_env_stub",
+      "status": "AVAILABLE",
+      "visibility": "APPLICANT_AND_ADMIN",
+      "version": 2,
+      "isCurrent": true
+    },
+    {
+      "id": "14141414-1414-4141-8141-141414141414",
+      "applicationId": "11111111-1111-4111-8111-111111111111",
+      "documentType": "management_plan",
+      "filename": "lower-environment-management-plan-previous.pdf",
+      "byteSize": 2100000,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "storageProvider": "lower_env_stub",
+      "status": "ARCHIVED",
+      "visibility": "APPLICANT_AND_ADMIN",
+      "version": 1,
+      "isCurrent": false
+    }
+  ]
+}

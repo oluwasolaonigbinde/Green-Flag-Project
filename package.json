@@ -7,7 +7,7 @@
     "build": "corepack pnpm --filter @green-flag/shared build && corepack pnpm --filter @green-flag/contracts build && corepack pnpm --filter @green-flag/db build && corepack pnpm --filter @green-flag/api build && corepack pnpm --filter @green-flag/web build",
     "typecheck": "corepack pnpm build && corepack pnpm --filter @green-flag/shared typecheck && corepack pnpm --filter @green-flag/contracts typecheck && corepack pnpm --filter @green-flag/db typecheck && corepack pnpm --filter @green-flag/api typecheck && corepack pnpm --filter @green-flag/web typecheck",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "corepack pnpm --filter @green-flag/contracts build && vitest run",
     "contracts:check": "corepack pnpm --filter @green-flag/contracts contracts:check",
     "openapi:check": "node scripts/check-openapi.mjs",
     "db:migrate:check": "corepack pnpm --filter @green-flag/db migrate:check",

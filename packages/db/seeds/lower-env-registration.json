@@ -1,0 +1,28 @@
+{
+  "syntheticOnly": true,
+  "environment": "lower-env-only",
+  "registrationSubmissions": [
+    {
+      "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "status": "VERIFIED_PENDING_REVIEW",
+      "parkName": "Lower Environment Park",
+      "organisationName": "Lower Environment Council",
+      "contactEmail": "park.manager@example.invalid",
+      "duplicateWarningState": "ACKNOWLEDGED",
+      "locationPayload": {
+        "latitude": 53.4001,
+        "longitude": -2.2001,
+        "w3wAddress": "///lower.environment.park",
+        "source": "lower-env-mock"
+      }
+    }
+  ],
+  "verificationTokens": [
+    {
+      "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "registrationSubmissionId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "status": "ACTIVE",
+      "expiresAt": "2026-05-12T00:00:00Z"
+    }
+  ]
+}

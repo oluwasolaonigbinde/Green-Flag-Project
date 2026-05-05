@@ -1,0 +1,22 @@
+{
+  "syntheticOnly": true,
+  "environment": "lower-env-only",
+  "assessors": [
+    {
+      "assessorId": "20202020-2020-4202-8202-202020202020",
+      "internalUserId": "19191919-1919-4191-8191-191919191919",
+      "displayName": "Lower Env Judge",
+      "profileStatus": "ACTIVE",
+      "accreditationStatus": "CURRENT_LOWER_ENV",
+      "accreditationProvider": "external_value_unavailable",
+      "preferredRegions": ["North West"],
+      "preferredAwardTrackCodes": ["STANDARD_GREEN_FLAG"],
+      "capacity": {
+        "cycleYear": 2026,
+        "maxAssignments": 8,
+        "currentAssignedCount": 0,
+        "capacityStatus": "available"
+      }
+    }
+  ]
+}

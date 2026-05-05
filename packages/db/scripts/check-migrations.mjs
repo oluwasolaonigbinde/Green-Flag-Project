@@ -5,6 +5,53 @@ import { fileURLToPath } from "node:url";
 const migrationDir = new URL("../migrations", import.meta.url);
 const migrationDirPath = fileURLToPath(migrationDir);
 const files = readdirSync(migrationDir).filter((file) => file.endsWith(".sql"));
+const forbiddenLaterSliceTables = [
+  /applications/i,
+  /allocations/i,
+  /documents/i,
+  /invoices/i,
+  /messages/i,
+  /notifications/i,
+  /payments/i,
+  /public_map_update_events/i,
+  /results/i,
+  /scores/i,
+  /judge_profiles/i,
+  /judge_exclusions/i,
+  /judge_assignment_history/i,
+  /judge_clusters/i,
+  /judge_assignments/i,
+  /decision_results/i,
+  /visits/i
+];
+const approvedSlice3Tables = [
+  "registration_submissions",
+  "registration_verification_tokens",
+  "registration_notification_intents"
+];
+const approvedSlice4Tables = [
+  "applications",
+  "application_sections",
+  "application_field_values",
+  "application_feedback_responses"
+];
+const approvedSlice5Tables = [
+  "document_assets",
+  "document_upload_sessions",
+  "document_upload_chunks"
+];
+const approvedSlice6Tables = [
+  "application_submissions",
+  "invoices",
+  "payment_states",
+  "payment_notification_intents"
+];
+const approvedSlice8Tables = [
+  "assessor_profiles",
+  "assessor_preferences",
+  "assessor_availability_windows",
+  "assessor_capacity_declarations"
+];
 
 if (files.length === 0) {
   throw new Error("No SQL migrations found");
@@ -16,12 +63,27 @@ for (const file of files) {
   }
 
   const sql = readFileSync(join(migrationDirPath, file), "utf8");
-  const sqlBody = sql.replace(/^--.*$/gm, "");
+  let sqlBody = sql.replace(/^--.*$/gm, "");
+  for (const table of approvedSlice3Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice4Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice5Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice6Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice8Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
   if (!sql.includes("-- migrate:down")) {
     throw new Error(`Migration ${file} is missing -- migrate:down marker`);
   }
 
-  if (/audit_events|assessment_episodes|applications|role_assignments/i.test(sqlBody)) {
+  if (forbiddenLaterSliceTables.some((pattern) => pattern.test(sqlBody))) {
     throw new Error(`Migration ${file} contains later-slice domain tables`);
   }
 }

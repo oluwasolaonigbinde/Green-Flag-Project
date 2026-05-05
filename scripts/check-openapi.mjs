@@ -3,12 +3,95 @@ import { readFileSync } from "node:fs";
 const documentPath = new URL("../openapi/openapi.json", import.meta.url);
 const document = JSON.parse(readFileSync(documentPath, "utf8"));
 
-const requiredPaths = ["/health", "/api/v1/contract-metadata"];
-const requiredSchemas = ["HealthResponse", "ContractMetadataResponse", "ErrorResponse"];
+const requiredPaths = [
+  "/health",
+  "/api/v1/contract-metadata",
+  "/api/v1/registrations",
+  "/api/v1/registrations/{registrationId}",
+  "/api/v1/registrations/{registrationId}/location-lookup",
+  "/api/v1/registrations/{registrationId}/verify-email",
+  "/api/v1/admin/registration-review-queue",
+  "/api/v1/admin/registration-review-queue/{registrationId}/approve",
+  "/api/v1/admin/registration-review-queue/{registrationId}/reject",
+  "/api/v1/applicant/dashboard",
+  "/api/v1/applicant/applications",
+  "/api/v1/applicant/applications/{applicationId}",
+  "/api/v1/applicant/applications/{applicationId}/sections/{sectionKey}",
+  "/api/v1/applicant/applications/{applicationId}/previous-feedback-response",
+  "/api/v1/applicant/applications/{applicationId}/documents",
+  "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions",
+  "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions/{sessionId}/chunks/{chunkIndex}",
+  "/api/v1/applicant/applications/{applicationId}/documents/upload-sessions/{sessionId}/complete",
+  "/api/v1/applicant/applications/{applicationId}/documents/{documentId}/access",
+  "/api/v1/applicant/applications/{applicationId}/documents/{documentId}/versions",
+  "/api/v1/applicant/applications/{applicationId}/submit",
+  "/api/v1/applicant/applications/{applicationId}/submission",
+  "/api/v1/applicant/applications/{applicationId}/payment-summary",
+  "/api/v1/applicant/applications/{applicationId}/purchase-order",
+  "/api/v1/admin/payments/{invoiceId}/mark-paid",
+  "/api/v1/admin/payments/{invoiceId}/override-block",
+  "/api/v1/admin/payments/deadline-check",
+  "/api/v1/admin/dashboard-summary",
+  "/api/v1/admin/queues/registrations",
+  "/api/v1/admin/queues/applications",
+  "/api/v1/admin/queues/payments",
+  "/api/v1/admin/queues/documents",
+  "/api/v1/admin/applications/{applicationId}",
+  "/api/v1/admin/applications/{applicationId}/allocation-readiness",
+  "/api/v1/assessor/profile",
+  "/api/v1/assessor/profile/preferences",
+  "/api/v1/assessor/profile/availability",
+  "/api/v1/assessor/profile/capacity",
+  "/api/v1/admin/assessors",
+  "/api/v1/admin/assessors/{assessorId}",
+  "/api/v1/admin/assessors/{assessorId}/disable"
+];
+const requiredSchemas = [
+  "HealthResponse",
+  "ContractMetadataResponse",
+  "ErrorResponse",
+  "RegistrationSubmissionRequest",
+  "RegistrationSubmissionResponse",
+  "RegistrationLocationSuggestion",
+  "VerificationLandingResponse",
+  "AdminRegistrationReviewQueueResponse",
+  "ParkActivationResponse",
+  "ApplicantDashboardResponse",
+  "ApplicationDraftResponse",
+  "AutosaveApplicationSectionResponse",
+  "PreviousFeedbackResponseDraft",
+  "ApplicationDocumentsResponse",
+  "DocumentUploadSession",
+  "DocumentChunkAcknowledgement",
+  "CompleteDocumentUploadResponse",
+  "SignedDocumentAccessResponse",
+  "DocumentVersionsResponse",
+  "SubmitApplicationRequest",
+  "PurchaseOrderPreference",
+  "ApplicationSubmissionResponse",
+  "InvoiceSummaryResponse",
+  "PaymentSummaryResponse",
+  "AdminPaymentActionRequest",
+  "AdminPaymentActionResponse",
+  "PaymentDeadlineCheckRequest",
+  "PaymentDeadlineCheckResponse",
+  "AdminDashboardSummaryResponse",
+  "AdminQueuePageMeta",
+  "AdminRegistrationQueueResponse",
+  "AdminApplicationQueueResponse",
+  "AdminPaymentQueueResponse",
+  "AdminDocumentQueueResponse",
+  "AdminApplicationDetailResponse",
+  "AdminAllocationReadinessPreviewResponse",
+  "AssessorSelfProfileResponse",
+  "AdminAssessorListResponse",
+  "AdminAssessorDetailResponse",
+  "AssessorProfileCommandResponse"
+];
 
 for (const path of requiredPaths) {
-  if (!document.paths?.[path]?.get) {
-    throw new Error(`Missing GET operation for ${path}`);
+  if (!document.paths?.[path]) {
+    throw new Error(`Missing operation path for ${path}`);
   }
 }
 
