@@ -1,8 +1,20 @@
 import { buildApp } from "./app.js";
+import { createPostgresApiRuntime } from "./postgres-runtime.js";
 
-const app = buildApp();
+const runtime = createPostgresApiRuntime();
+const app = buildApp(runtime
+  ? {
+      resolveSession: runtime.resolveSession,
+      auditLedger: runtime.auditLedger
+    }
+  : {});
 const port = Number(process.env.PORT ?? "4000");
 const host = process.env.HOST ?? "127.0.0.1";
 
 await app.listen({ port, host });
 console.log(`Green Flag API listening on http://${host}:${port}`);
+
+process.on("SIGTERM", async () => {
+  await runtime?.pool.end();
+  await app.close();
+});

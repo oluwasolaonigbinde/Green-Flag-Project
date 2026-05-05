@@ -123,11 +123,21 @@ slices:
     contract_path: docs/implementation/slice-contracts/S08-judge-profiles-assessor-management-capacity.md
     delivery_record_path: docs/implementation/delivery-records/S08-judge-profiles-assessor-management-capacity-delivery.md
 
+  - id: 8.5
+    slug: postgres-runtime-persistence-wiring
+    title: PostgreSQL runtime persistence wiring
+    status: DONE_FULL
+    depends_on: [1, 2, 3, 4, 5, 6, 7, 8]
+    purpose: Add production PostgreSQL runtime connection, transaction, migration, identity lookup, and audit ledger adapters so allocation and later backend slices can build against a real persistence boundary instead of only lower-env stores.
+    frontend_reopen_allowed: false
+    contract_path: docs/implementation/slice-contracts/S08-postgres-runtime-persistence-wiring.md
+    delivery_record_path: docs/implementation/delivery-records/S08-postgres-runtime-persistence-wiring-delivery.md
+
   - id: 9
     slug: allocation-workflow-candidates-coi-release-acceptance
     title: Allocation workflow: candidates, COI, hold/release, and acceptance
-    status: CONTRACT_REVIEW
-    depends_on: [6, 8]
+    status: TODO
+    depends_on: [6, 8, 8.5]
     purpose: Deliver candidate queries, hard/soft COI handling, rotation flags, suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules.
     frontend_reopen_allowed: true
     contract_path: null

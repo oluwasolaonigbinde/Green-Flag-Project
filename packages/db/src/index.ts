@@ -79,3 +79,15 @@ export const adminOverrideEventTablePolicy = {
   linksAuditEventWhereAvailable: true,
   immutableOperations: ["UPDATE", "DELETE"] as const
 } as const;
+
+export {
+  createPostgresPool,
+  readPostgresRuntimeConfig,
+  runMigrations,
+  withTransaction,
+  type PostgresRuntimeConfig,
+  type SqlClient,
+  type SqlPool,
+  type SqlPoolClient,
+  type SqlQueryResult
+} from "./postgres.js";

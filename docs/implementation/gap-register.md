@@ -16,7 +16,7 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 | EXT-008 | Public map | Final public map endpoint/data contract | Emit/retry public_map_update_events; adapter boundary | Automated public map sync |
 | EXT-009 | Migration | Current system export files | Build import tooling and synthetic seeds | Migration dry run/go-live load |
 | EXT-010 | Governance | Legal/compliance/formal KBT sign-off | Implement hooks; do not invent approvals | Go-live approval |
-| EXT-011 | Persistence | Production PostgreSQL repository adapters/API runtime wiring for Slices 1-8 | Lower-env/test stores are explicit and transaction-capable; API no longer silently defaults to them | Production deployment / UAT against durable data |
+| EXT-011 | Persistence | Full table-specific PostgreSQL repositories and DB-backed integration tests for Slices 3-8 command stores | PostgreSQL runtime, migrations, identity/session, and audit ledger are wired; lower-env command stores remain for route tests | Production deployment / UAT against durable data |
 
 ## Frontend/design gaps
 
@@ -64,4 +64,4 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 - If Figma live access is unavailable, planning must proceed from local locked snapshot and record freshness not verified.
 - If UI conflicts with PRD/architecture, PRD/architecture wins and the conflict must be recorded.
 - If a reopened UI slice requires backend/API/schema/rule changes, stop and return to contract review or create a new backlog item.
-- Slices 1-8 now have hardened lower-env transaction/authorization/redaction boundaries, but production-grade operation still requires wiring the API to real PostgreSQL repositories and running DB-backed integration tests.
+- Slices 1-8 now have hardened lower-env transaction/authorization/redaction boundaries plus PostgreSQL runtime identity/session/audit wiring, but production-grade operation still requires table-specific repositories for all domain command stores and DB-backed integration tests.

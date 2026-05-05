@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@green-flag/contracts": "workspace:*",
+    "@green-flag/db": "workspace:*",
     "fastify": "^5.3.3",
     "jose": "^5.10.0",
     "zod": "^3.25.28"
