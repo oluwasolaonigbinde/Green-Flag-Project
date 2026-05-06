@@ -39,4 +39,4 @@ Slice 9 can resume after contract review. Runtime configuration still needs `DAT
 ## Residual Risks
 
 - The adapter preserves the existing Slices 3-8 route/store contract and persists DTO payloads through table-specific runtime payload columns. A later hardening pass can normalize more read-model fields for query performance.
-- Slice 9 allocation remains product-blocked until KBT allocation rules are supplied or safely bounded in contract review.
+- Slice 9 allocation can proceed from the source-backed default rules in `REQ-ALO-001` through `REQ-ALO-006`, `REQ-CYC-002`, and the architecture Judge Allocation Engine. Remaining production-specific allocation inputs should be modelled as configurable policy values or import boundaries.

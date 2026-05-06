@@ -17,6 +17,7 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 | EXT-009 | Migration | Current system export files | Build import tooling and synthetic seeds | Migration dry run/go-live load |
 | EXT-010 | Governance | Legal/compliance/formal KBT sign-off | Implement hooks; do not invent approvals | Go-live approval |
 | EXT-011 | Persistence | Further normalization/performance tuning of PostgreSQL read models | Slices 3-8 runtime stores now persist through table-specific PostgreSQL adapters with DB integration tests; payload columns intentionally preserve existing DTO contracts | Slice 14 hardening / performance tuning |
+| EXT-012 | Allocation | Production allocation policy overrides and live COI register/import source | Build S09 from `REQ-ALO-001` through `REQ-ALO-006`, `REQ-CYC-002`, and architecture Section 7; keep distance thresholds, country/operator judge-count variants, second-judge extensions, and COI import source configurable | Production allocation/UAT sign-off |
 
 ## Frontend/design gaps
 

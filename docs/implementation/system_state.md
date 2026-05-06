@@ -72,7 +72,7 @@ Root commands are known and runnable through Corepack-backed pnpm:
 <!-- DELIVERY-MANAGED:NOT-IMPLEMENTED START -->
 - Production storage integration, real signed URL generation, real virus scanning, and document upload infrastructure.
 - Production payment provider automation, Business Central integration, production fee/VAT/legal invoice wording, and online card payment flow.
-- Allocation.
+- Allocation implementation. S09 contract review is active; source-backed allocation rules exist for judge-count defaults, COI handling, rotation, hold/release, contact reveal, and Mystery suppression, while production-specific allocation policy overrides and live COI import data remain configurable external inputs.
 - Mystery redaction policy implementation.
 - Visits/assessment/scoring.
 - Decisions/results/certificates/public map updates.
@@ -81,9 +81,10 @@ Root commands are known and runnable through Corepack-backed pnpm:
 
 ## Current active slice
 
-- active_slice: none
-- active_contract: none
-- next_legal_command: plan-next-slice
+- active_slice: 9
+- active_contract: pending
+- planned_contract_path: docs/implementation/slice-contracts/S09-allocation-workflow-candidates-coi-release-acceptance.md
+- next_legal_command: review-current-contract after drafting/revising the S09 contract from docs/implementation/working/current-plan.md
 
 ## Notes for repo-aware validation
 

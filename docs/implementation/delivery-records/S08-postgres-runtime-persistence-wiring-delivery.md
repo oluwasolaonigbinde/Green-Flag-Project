@@ -53,4 +53,4 @@ Slice 9 does not need AWS provisioning before contract work resumes. For product
 
 ## Next Legal Work
 
-Slice 9 can return to planning/contract review, but the previous allocation plan still records KBT-dependent rule gaps for hard/soft COI taxonomy, hold/release transitions, judge-count rules, accept/decline deadlines, and contact reveal timing.
+Slice 9 can return to planning/contract review. Source requirements and architecture provide implementable allocation defaults for judge-count suggestions, hard/soft COI handling, rotation deprioritisation, hold/release, contact reveal, and Mystery suppression. Remaining KBT-dependent items should be handled as configurable production policy values or import boundaries, not as a total blocker to S09.

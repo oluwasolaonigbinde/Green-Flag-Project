@@ -146,9 +146,9 @@ slices:
   - id: 9
     slug: allocation-workflow-candidates-coi-release-acceptance
     title: Allocation workflow: candidates, COI, hold/release, and acceptance
-    status: TODO
+    status: CONTRACT_REVIEW
     depends_on: [6, 8, 8.5, 8.6]
-    purpose: Deliver candidate queries, hard/soft COI handling, rotation flags, suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules.
+    purpose: Deliver candidate queries, source-backed hard/soft COI handling, rotation flags, configurable suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules from REQ-ALO/architecture source truth.
     frontend_reopen_allowed: true
     contract_path: null
     delivery_record_path: null
