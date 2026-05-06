@@ -65,3 +65,9 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 - If UI conflicts with PRD/architecture, PRD/architecture wins and the conflict must be recorded.
 - If a reopened UI slice requires backend/API/schema/rule changes, stop and return to contract review or create a new backlog item.
 - Slices 1-8 now have hardened lower-env transaction/authorization/redaction boundaries, PostgreSQL runtime identity/session/audit wiring, table-specific domain store adapters, and DB-backed integration tests. Later hardening should normalize more SQL fields for performance where needed.
+
+## Persistence hardening TODO
+
+- EXT-011 follow-up: S08.6 intentionally persists full Slices 3-8 DTOs in table-specific `runtime_payload` JSONB columns while keeping core operational columns relational. A later hardening slice should promote frequently queried/read-model fields into dedicated SQL columns or child tables once query patterns stabilize.
+- Candidate fields to normalize include admin queue sort/filter fields, document review/version state by document type, payment deadline/manual-action metadata, application section completion/detail fields, assessor/judge capacity and availability aggregates, and reporting/export fields.
+- Keep existing `runtime_payload` compatibility during the transition unless a later slice explicitly migrates payload shape and read contracts together.
