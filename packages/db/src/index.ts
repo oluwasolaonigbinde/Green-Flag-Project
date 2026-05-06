@@ -82,12 +82,15 @@ export const adminOverrideEventTablePolicy = {
 
 export {
   createPostgresPool,
+  createUnitOfWork,
   readPostgresRuntimeConfig,
   runMigrations,
+  UnitOfWork,
   withTransaction,
   type PostgresRuntimeConfig,
   type SqlClient,
   type SqlPool,
   type SqlPoolClient,
-  type SqlQueryResult
+  type SqlQueryResult,
+  type TransactionContext
 } from "./postgres.js";

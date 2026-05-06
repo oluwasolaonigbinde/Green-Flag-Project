@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import { AsyncLocalStorage } from "node:async_hooks";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -28,6 +29,26 @@ export interface PostgresRuntimeConfig {
   maxConnections?: number;
 }
 
+export interface TransactionContext {
+  client: SqlClient;
+}
+
+export class UnitOfWork {
+  private readonly storage = new AsyncLocalStorage<TransactionContext>();
+
+  constructor(private readonly pool: SqlPool) {}
+
+  currentClient(): SqlClient {
+    return this.storage.getStore()?.client ?? this.pool;
+  }
+
+  async run<T>(work: (context: TransactionContext) => Promise<T>): Promise<T> {
+    return withTransaction(this.pool, async (client) =>
+      this.storage.run({ client }, async () => work({ client }))
+    );
+  }
+}
+
 export function readPostgresRuntimeConfig(env: NodeJS.ProcessEnv = process.env): PostgresRuntimeConfig | null {
   const databaseUrl = env.DATABASE_URL;
   if (!databaseUrl) {
@@ -50,6 +71,10 @@ export function createPostgresPool(config: PostgresRuntimeConfig): SqlPool {
     ssl: config.ssl ? { rejectUnauthorized: false } : undefined,
     max: config.maxConnections ?? 10
   }) as unknown as SqlPool;
+}
+
+export function createUnitOfWork(pool: SqlPool) {
+  return new UnitOfWork(pool);
 }
 
 export async function withTransaction<T>(pool: SqlPool, work: (client: SqlClient) => Promise<T>): Promise<T> {

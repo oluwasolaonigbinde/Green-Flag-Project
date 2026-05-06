@@ -48,6 +48,7 @@ Root commands are known and runnable through Corepack-backed pnpm:
 - Judge/assessor profile records, accreditation source-of-truth markers, preferences, availability windows, capacity declarations, admin assessor management read models/commands, assessor self-service APIs, lower-env assessor seeds, audit-backed profile/preference/availability/capacity commands, and assessor/admin management frontend routes.
 - Slices 1-8 hardening: API route registration no longer defaults production paths to in-memory stores; lower-env/test stores must be injected explicitly, critical submission/payment commands use transaction wrappers with audit rollback behavior, scoped access checks use central ownership predicates, payment block override records dedicated admin override events, applicant-facing Mystery redaction is centralized for delivered dashboard/document surfaces, and admin read models read episode status from the episode lifecycle state.
 - PostgreSQL runtime persistence wiring: `DATABASE_URL` configuration, typed PostgreSQL pool/client utilities, transaction helper, migration runner with `schema_migrations`, DB-backed Cognito subject/role lookup, DB-backed append-only audit ledger, and API startup wiring for production session/audit runtime.
+- PostgreSQL domain repository adapters for Slices 3-8 runtime stores, including UnitOfWork transaction context, table-specific runtime payload persistence, production-like startup guard for missing `DATABASE_URL`, and Docker-backed DB integration tests.
 <!-- DELIVERY-MANAGED:IMPLEMENTED END -->
 
 ## Partial / stubbed capabilities
@@ -63,7 +64,7 @@ Root commands are known and runnable through Corepack-backed pnpm:
 - Applicant submission/payment frontend is partial against available submitted/payment PNG evidence; exact PO/no-PO variants, invoice state variants, admin manual payment UI, online card flow, and mobile payment/submitted variants remain frontend gaps.
 - Admin queues frontend is partial against available Super Admin dashboard/queue/document PNG evidence; exact application status variants, payment manual action UI, document archive filters/version detail variants, mobile admin views, and allocation-readiness preview variants remain frontend gaps.
 - Assessor/admin management frontend is partial against available assessor dashboard/preference and Super Admin assessor management PNG evidence; exact profile edit/accreditation states, admin create/edit/disable states, availability/capacity validation states, and mobile variants remain frontend gaps.
-- Full table-specific PostgreSQL repositories for every Slices 3-8 domain command store remain partial; the production runtime now has real identity/session/audit persistence and a migration runner, while lower-env command stores remain the main route test path.
+- PostgreSQL domain adapters persist current Slices 3-8 DTO payloads through table-specific runtime payload columns; later hardening can normalize additional read-model fields for performance.
 <!-- DELIVERY-MANAGED:PARTIAL END -->
 
 ## Not implemented

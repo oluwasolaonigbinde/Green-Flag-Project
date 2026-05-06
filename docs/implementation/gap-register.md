@@ -16,7 +16,7 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 | EXT-008 | Public map | Final public map endpoint/data contract | Emit/retry public_map_update_events; adapter boundary | Automated public map sync |
 | EXT-009 | Migration | Current system export files | Build import tooling and synthetic seeds | Migration dry run/go-live load |
 | EXT-010 | Governance | Legal/compliance/formal KBT sign-off | Implement hooks; do not invent approvals | Go-live approval |
-| EXT-011 | Persistence | Full table-specific PostgreSQL repositories and DB-backed integration tests for Slices 3-8 command stores | PostgreSQL runtime, migrations, identity/session, and audit ledger are wired; lower-env command stores remain for route tests | Production deployment / UAT against durable data |
+| EXT-011 | Persistence | Further normalization/performance tuning of PostgreSQL read models | Slices 3-8 runtime stores now persist through table-specific PostgreSQL adapters with DB integration tests; payload columns intentionally preserve existing DTO contracts | Slice 14 hardening / performance tuning |
 
 ## Frontend/design gaps
 
@@ -64,4 +64,4 @@ This file records known missing inputs, external dependencies, frontend gaps, an
 - If Figma live access is unavailable, planning must proceed from local locked snapshot and record freshness not verified.
 - If UI conflicts with PRD/architecture, PRD/architecture wins and the conflict must be recorded.
 - If a reopened UI slice requires backend/API/schema/rule changes, stop and return to contract review or create a new backlog item.
-- Slices 1-8 now have hardened lower-env transaction/authorization/redaction boundaries plus PostgreSQL runtime identity/session/audit wiring, but production-grade operation still requires table-specific repositories for all domain command stores and DB-backed integration tests.
+- Slices 1-8 now have hardened lower-env transaction/authorization/redaction boundaries, PostgreSQL runtime identity/session/audit wiring, table-specific domain store adapters, and DB-backed integration tests. Later hardening should normalize more SQL fields for performance where needed.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readPostgresRuntimeConfig, withTransaction, type SqlPool, type SqlPoolClient } from "./postgres.js";
+import { createUnitOfWork, readPostgresRuntimeConfig, withTransaction, type SqlPool, type SqlPoolClient } from "./postgres.js";
 
 class FakeClient implements SqlPoolClient {
   statements: string[] = [];
@@ -59,5 +59,15 @@ describe("Postgres runtime utilities", () => {
       throw new Error("boom");
     })).rejects.toThrow("boom");
     expect(pool.client.statements).toEqual(["BEGIN", "ROLLBACK", "RELEASE"]);
+  });
+
+  it("exposes the transaction client through UnitOfWork context", async () => {
+    const pool = new FakePool();
+    const uow = createUnitOfWork(pool);
+    await uow.run(async ({ client }) => {
+      expect(uow.currentClient()).toBe(client);
+      await uow.currentClient().query("SELECT in_transaction");
+    });
+    expect(pool.client.statements).toEqual(["BEGIN", "SELECT in_transaction", "COMMIT", "RELEASE"]);
   });
 });

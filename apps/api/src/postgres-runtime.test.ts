@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SqlClient } from "@green-flag/db";
 import { globalAdminSessionFixture } from "@green-flag/contracts";
-import { PostgresAuditLedger, PostgresIdentityRepository } from "./postgres-runtime.js";
+import { createPostgresApiRuntime, isProductionLikeRuntime, PostgresAuditLedger, PostgresIdentityRepository } from "./postgres-runtime.js";
 
 class FakeSqlClient implements SqlClient {
   calls: Array<{ text: string; values?: unknown[] }> = [];
@@ -18,6 +18,13 @@ class FakeSqlClient implements SqlClient {
 }
 
 describe("Postgres API runtime adapters", () => {
+  it("refuses production-like runtime without DATABASE_URL", async () => {
+    expect(isProductionLikeRuntime({ NODE_ENV: "production" })).toBe(true);
+    await expect(createPostgresApiRuntime({ NODE_ENV: "production" })).rejects.toThrow("DATABASE_URL");
+    await expect(createPostgresApiRuntime({ API_RUNTIME_MODE: "staging" })).rejects.toThrow("DATABASE_URL");
+    await expect(createPostgresApiRuntime({ NODE_ENV: "test" })).resolves.toBeNull();
+  });
+
   it("maps Cognito subjects to internal users and scoped role assignments", async () => {
     const adminRoleAssignment = globalAdminSessionFixture.roleAssignments[0];
     if (!adminRoleAssignment) {

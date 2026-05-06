@@ -1,11 +1,14 @@
 import { buildApp } from "./app.js";
 import { createPostgresApiRuntime } from "./postgres-runtime.js";
 
-const runtime = createPostgresApiRuntime();
+const runtime = await createPostgresApiRuntime();
 const app = buildApp(runtime
   ? {
       resolveSession: runtime.resolveSession,
-      auditLedger: runtime.auditLedger
+      auditLedger: runtime.auditLedger,
+      registrationStore: runtime.stores.registrationStore,
+      applicantStore: runtime.stores.applicantStore,
+      assessorStore: runtime.stores.assessorStore
     }
   : {});
 const port = Number(process.env.PORT ?? "4000");

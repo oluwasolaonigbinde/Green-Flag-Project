@@ -1,8 +1,10 @@
 import {
   createPostgresPool,
+  createUnitOfWork,
   readPostgresRuntimeConfig,
   type SqlClient,
-  type SqlPool
+  type SqlPool,
+  type UnitOfWork
 } from "@green-flag/db";
 import {
   auditEventSchema,
@@ -19,6 +21,7 @@ import {
   type RoleAssignment,
   type SessionResolver
 } from "./auth.js";
+import { createPostgresDomainStores, type DomainStoreBundle } from "./postgres-domain-stores.js";
 
 interface InternalUserRow {
   id: string;
@@ -93,12 +96,12 @@ export class PostgresIdentityRepository implements IdentityReadRepository {
 }
 
 export class PostgresAuditLedger implements AuditLedger {
-  constructor(private readonly client: SqlClient) {}
+  constructor(private readonly client: SqlClient, private readonly unitOfWork?: UnitOfWork) {}
 
   async append(event: AuditEvent): Promise<void> {
     const parsed = auditEventSchema.parse(event);
     const primaryScope = parsed.actor.scopes[0] ?? { type: "GLOBAL" as const };
-    await this.client.query(
+    await (this.unitOfWork?.currentClient() ?? this.client).query(
       `
         INSERT INTO audit_events (
           id,
@@ -144,13 +147,22 @@ export class PostgresAuditLedger implements AuditLedger {
 
 export interface PostgresApiRuntime {
   pool: SqlPool;
+  unitOfWork: UnitOfWork;
   resolveSession: SessionResolver;
   auditLedger: AuditLedger;
+  stores: DomainStoreBundle;
 }
 
-export function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.env): PostgresApiRuntime | null {
+export function isProductionLikeRuntime(env: NodeJS.ProcessEnv = process.env) {
+  return env.NODE_ENV === "production" || env.API_RUNTIME_MODE === "production" || env.API_RUNTIME_MODE === "staging";
+}
+
+export async function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.env): Promise<PostgresApiRuntime | null> {
   const dbConfig = readPostgresRuntimeConfig(env);
   if (!dbConfig) {
+    if (isProductionLikeRuntime(env)) {
+      throw new Error("Production-like API runtime requires DATABASE_URL. Refusing to start with in-memory stores.");
+    }
     return null;
   }
 
@@ -162,12 +174,15 @@ export function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.env): 
   }
 
   const pool = createPostgresPool(dbConfig);
+  const unitOfWork = createUnitOfWork(pool);
   return {
     pool,
+    unitOfWork,
     resolveSession: createSessionResolver({
       identityRepository: new PostgresIdentityRepository(pool),
       verifyBearerToken: createCognitoJwtVerifier({ issuer, audience, jwksUrl })
     }),
-    auditLedger: new PostgresAuditLedger(pool)
+    auditLedger: new PostgresAuditLedger(pool, unitOfWork),
+    stores: await createPostgresDomainStores({ client: pool, unitOfWork })
   };
 }

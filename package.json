@@ -11,7 +11,8 @@
     "contracts:check": "corepack pnpm --filter @green-flag/contracts contracts:check",
     "openapi:check": "node scripts/check-openapi.mjs",
     "db:migrate:check": "corepack pnpm --filter @green-flag/db migrate:check",
-    "db:seed:check": "corepack pnpm --filter @green-flag/db seed:check"
+    "db:seed:check": "corepack pnpm --filter @green-flag/db seed:check",
+    "db:integration:test": "node scripts/run-db-integration.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
