@@ -9,9 +9,10 @@ This repo uses a state-driven slice workflow. Do not guess scope. Resolve work f
 3. `docs/implementation/system_state.md`
 4. `docs/implementation/gap-register.md`
 5. `docs/implementation/ui-slice-map.yaml`
-6. Source truth docs under `docs/source/`
-7. Architecture / implementation docs under `docs/implementation/`
-8. Figma exports and manifests under `docs/figma/`, `docs/figma-manifest.json`, and `docs/figma-manifest.md`
+6. `docs/implementation/source-reconciliation.md`
+7. Source truth docs under `docs/source/`
+8. Architecture / implementation docs under `docs/implementation/`
+9. Figma exports and manifests under `docs/figma/`, `docs/figma-manifest.json`, and `docs/figma-manifest.md`
 
 ## Non-negotiable Green Flag rules
 
@@ -24,6 +25,7 @@ This repo uses a state-driven slice workflow. Do not guess scope. Resolve work f
 - Every data-changing command must emit `audit_events` once the audit foundation exists.
 - Do not invent production fees, VAT values, official scoring criteria, applicant score bands, legal wording, provider credentials, or KBT approvals.
 - If frontend screens are missing but backend/API requirements are clear, proceed with contracts, mocks, stubs, and explicit frontend gap records.
+- If source documents appear contradictory, apply `docs/implementation/source-reconciliation.md` and record any remaining unresolved conflict before blocking work.
 
 ## Normal commands
 

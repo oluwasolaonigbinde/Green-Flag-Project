@@ -22,10 +22,13 @@ Agents must read truth layers before interpreting the active slice.
 4. **Gap analysis**  
    `docs/implementation/gap-register.md` records missing screens, external production dependencies, missing scoring/fee values, missing provider credentials, and known risks.
 
-5. **Executable backlog**  
+5. **Source reconciliation**
+   `docs/implementation/source-reconciliation.md` records deterministic precedence when PRD, requirements, architecture, implementation docs, and UI evidence overlap or appear contradictory.
+
+6. **Executable backlog**
    `docs/implementation/slice-backlog.yaml` is the single ordered list of slices. Only this file selects the next slice and drives status changes.
 
-6. **UI evidence**  
+7. **UI evidence**
    `docs/implementation/ui-slice-map.yaml`, `docs/figma-manifest.json`, `docs/figma-manifest.md`, and `docs/figma/**` define current design evidence. UI assets shape frontend layout and read models; they do not override product or architecture rules.
 
 ## Slice statuses
@@ -72,7 +75,7 @@ Actions:
 - Select the first eligible `TODO` from `slice-backlog.yaml`.
 - Create `docs/implementation/working/current-plan.md` as a draft slice contract.
 - Move the slice to `CONTRACT_REVIEW`.
-- Map backend scope, API scope, frontend scope, UI evidence, missing screens, tests, mocks, forbidden work, external blockers, and stop triggers.
+- Map backend scope, API scope, frontend scope, UI evidence, source reconciliation, missing screens, tests, mocks, forbidden work, external blockers, and stop triggers.
 - Do not implement code.
 
 ### 3. Review current contract
@@ -81,7 +84,7 @@ Preconditions: exactly one `CONTRACT_REVIEW` slice and a draft current plan.
 
 Actions:
 
-- Review the plan against source truth, architecture truth, backlog, system state, gap register, and UI evidence.
+- Review the plan against source truth, source reconciliation, architecture truth, backlog, system state, gap register, and UI evidence.
 - On PASS: freeze the plan into `slice-contracts/Sxx-<slug>.md`, move backlog to `IN_PROGRESS`, and mark contract state `Frozen`.
 - On FAIL: keep the slice in `CONTRACT_REVIEW` and write precise required fixes to `working/current-plan-review.md`.
 

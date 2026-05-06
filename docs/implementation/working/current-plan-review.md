@@ -16,10 +16,11 @@
 - Backend, API, frontend, verification, RBAC, audit, transaction, and redaction expectations are concrete enough as engineering boundaries.
 - UI evidence is mapped correctly as layout/read-model evidence only; it does not define allocation business rules.
 - Source requirements and architecture provide enough allocation behavior for a configurable S09 foundation.
+- `docs/implementation/source-reconciliation.md` now records the precedence rule for source overlaps and the S09 allocation policy interpretation.
 
-## Required Plan Corrections
+## Required Contract Treatment
 
-The prior review overstated the blocker. Repo-readable source truth does answer the core S09 allocation behaviors:
+Repo-readable source truth defines the core S09 allocation behaviors:
 
 - `REQ-ALO-001` defines default judge-count suggestions: 2 judges for new sites, parks over 25 hectares, heritage, and failed sites; 1 judge for passed sites under 25 hectares; optional 3rd judge for training; admin override requires reason and audit.
 - `REQ-ALO-002` defines hard/soft COI handling: hard COI candidates are excluded; soft COI candidates are visible with an admin acknowledgement flag; both are logged.
@@ -30,7 +31,7 @@ The prior review overstated the blocker. Repo-readable source truth does answer 
 - `REQ-CYC-002` defines Mystery applicant visibility: applicant-facing status remains `APPLICATION_UNDER_REVIEW` with assessor, visit, assignment, and assessment type suppressed.
 - `docs/source/GFA_Integrated_Architecture (3).docx` Section 7 defines the candidate engine model: `cycle_id` input; draft `judge_assignments` output; active/current-accredited judges within configured distance and under capacity; hard/self-declared conflicts excluded; soft flags preserved; rotation penalty; distance and cluster-fit scoring; draft assignments hidden until admin confirmation.
 
-The S09 plan should therefore be revised to implement the source-backed behavior above using configurable policy values where production-specific details remain open.
+The S09 contract should implement the source-backed behavior above using configurable policy values where production-specific details remain open.
 
 The remaining open items are production configuration and migration inputs, not slice-stopping blockers:
 
@@ -45,7 +46,7 @@ The remaining risk is hardcoding production-specific policy values instead of ma
 
 ## Required Next Action
 
-Revise the S09 contract/plan so the normal scope reflects the source-backed rules and treats remaining `OI-004` through `OI-007` items as configurable production inputs. Then rerun contract review.
+Draft/freeze the S09 contract so normal scope reflects the source-backed rules and treats remaining `OI-004` through `OI-007` items as configurable production inputs. Then rerun contract review.
 
 ## Freeze Result
 

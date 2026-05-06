@@ -14,6 +14,7 @@
   - docs/implementation/slice-backlog.yaml
   - docs/implementation/system_state.md
   - docs/implementation/gap-register.md
+  - docs/implementation/source-reconciliation.md
   - docs/implementation/ui-slice-map.yaml
   - docs/implementation/slice-contracts/S06-submission-invoice-po-payment-state.md
   - docs/implementation/slice-contracts/S07-admin-read-models-queues.md
@@ -40,7 +41,7 @@ S09 is the active `CONTRACT_REVIEW` slice in `slice-backlog.yaml`. Dependencies 
 
 Deliver the allocation workflow foundation after payment and assessor management: allocation-ready episode selection, candidate assessor query/read model, COI markers, rotation/capacity flags, suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal controls. `assessment_episodes` must remain the operational lifecycle root.
 
-S09 is source-supported by `REQ-ALO-001` through `REQ-ALO-006`, `REQ-CYC-002`, and the Judge Allocation Engine design in `GFA_Integrated_Architecture (3).docx` Section 7. Production-specific policy inputs that remain pending must be represented as configuration or import boundaries, not hardcoded guesses.
+S09 follows the source precedence recorded in `docs/implementation/source-reconciliation.md`: `REQ-ALO-001` through `REQ-ALO-006`, `REQ-CYC-002`, and the Judge Allocation Engine design in `GFA_Integrated_Architecture (3).docx` Section 7 define implementable allocation behavior. Production-specific policy inputs that remain pending must be represented as configuration or import boundaries, not hardcoded guesses.
 
 ## Primary Path
 
@@ -97,7 +98,7 @@ DTOs must include predictable errors for forbidden scope, invalid state transiti
 
 ## Configurable Production Inputs
 
-Prior source extraction found the following production inputs still pending, but they do not block a configurable S09 foundation because confirmed `REQ-ALO-*` rules and architecture defaults exist:
+The source reconciliation leaves the following production inputs configurable:
 
 - `OI-004`: full judge allocation rules for 1 vs 2 vs 3 judges per country. Implement the confirmed default rule from `REQ-ALO-001`, store policy as configuration, and keep country/operator overrides data-driven.
 - `OI-005`: whether distance thresholds are fixed nationally or configurable per country/region. Implement configurable distance thresholds using architecture defaults where lower-env data needs deterministic values.
