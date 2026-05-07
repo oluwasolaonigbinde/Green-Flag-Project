@@ -105,6 +105,40 @@ export const assignmentStatuses = [
   "WITHDRAWN"
 ] as const;
 
+export const allocationStatuses = [
+  "HELD",
+  "RELEASED",
+  "COMPLETED",
+  "WITHDRAWN"
+] as const;
+
+export const coiFlagTypes = [
+  "hard",
+  "self_declared",
+  "admin_set",
+  "same_operator",
+  "soft",
+  "rotation"
+] as const;
+
+export const redactionSurfaceNames = [
+  "applicant_dashboard",
+  "applicant_documents",
+  "signed_document_access",
+  "applicant_notification",
+  "applicant_message",
+  "applicant_search",
+  "applicant_export",
+  "status_label"
+] as const;
+
+export const redactionDecisionActions = [
+  "allow",
+  "redact",
+  "suppress",
+  "block"
+] as const;
+
 export const assessmentStatuses = [
   "NOT_STARTED",
   "IN_PROGRESS",
@@ -113,12 +147,69 @@ export const assessmentStatuses = [
   "ACCEPTED"
 ] as const;
 
+export const visitStatuses = [
+  "UNSCHEDULED",
+  "SCHEDULED",
+  "COMPLETED",
+  "CANCELLED"
+] as const;
+
+export const assessmentEvidenceTypes = [
+  "photo",
+  "note",
+  "document"
+] as const;
+
 export const resultStatuses = [
   "NOT_READY",
   "PENDING_REVIEW",
   "CONFIRMED_HELD",
   "PUBLISHED",
   "WITHDRAWN"
+] as const;
+
+export const resultDecisionOutcomes = [
+  "THRESHOLD_MET",
+  "THRESHOLD_NOT_MET",
+  "WITHHELD_PENDING_REVIEW"
+] as const;
+
+export const publicMapEventStatuses = [
+  "PENDING",
+  "DISPATCHED",
+  "FAILED"
+] as const;
+
+export const notificationChannels = [
+  "email",
+  "sms",
+  "in_app"
+] as const;
+
+export const notificationStatuses = [
+  "QUEUED",
+  "SUPPRESSED",
+  "DISPATCH_STUBBED",
+  "FAILED"
+] as const;
+
+export const messageThreadStatuses = [
+  "OPEN",
+  "CLOSED",
+  "SUPPRESSED"
+] as const;
+
+export const jobRunStatuses = [
+  "STARTED",
+  "COMPLETED",
+  "FAILED"
+] as const;
+
+export const exportStatuses = [
+  "REQUESTED",
+  "COMPLETED",
+  "FAILED",
+  "SUPPRESSED"
 ] as const;
 
 export const paymentStatuses = [
@@ -162,5 +253,20 @@ export type DocumentVisibility = (typeof documentVisibilities)[number];
 export type RegistrationStatus = (typeof registrationStatuses)[number];
 export type ApplicationStatus = (typeof applicationStatuses)[number];
 export type EpisodeStatus = (typeof episodeStatuses)[number];
+export type AllocationStatus = (typeof allocationStatuses)[number];
+export type AssignmentStatus = (typeof assignmentStatuses)[number];
+export type CoiFlagType = (typeof coiFlagTypes)[number];
+export type RedactionSurfaceName = (typeof redactionSurfaceNames)[number];
+export type RedactionDecisionAction = (typeof redactionDecisionActions)[number];
+export type VisitStatus = (typeof visitStatuses)[number];
+export type AssessmentEvidenceType = (typeof assessmentEvidenceTypes)[number];
+export type ResultStatus = (typeof resultStatuses)[number];
+export type ResultDecisionOutcome = (typeof resultDecisionOutcomes)[number];
+export type PublicMapEventStatus = (typeof publicMapEventStatuses)[number];
+export type NotificationChannel = (typeof notificationChannels)[number];
+export type NotificationStatus = (typeof notificationStatuses)[number];
+export type MessageThreadStatus = (typeof messageThreadStatuses)[number];
+export type JobRunStatus = (typeof jobRunStatuses)[number];
+export type ExportStatus = (typeof exportStatuses)[number];
 export type SafeDisplayStatus = (typeof safeDisplayStatuses)[number];
 export type ErrorCode = (typeof errorCodes)[number];

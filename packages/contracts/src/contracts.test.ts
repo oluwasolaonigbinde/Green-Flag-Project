@@ -22,6 +22,10 @@ import {
   documentUploadSessionFixture,
   documentVersionsFixture,
   manualPaymentPaidFixture,
+  mysteryMessageProjectionFixture,
+  mysteryNotificationProjectionFixture,
+  mysteryRedactionDecisionFixture,
+  mysterySearchExportProjectionFixture,
   adminAllocationReadinessPreviewFixture,
   adminApplicationDetailFixture,
   adminApplicationQueueFixture,
@@ -30,10 +34,20 @@ import {
   adminDashboardSummaryFixture,
   adminDocumentQueueFixture,
   adminPaymentQueueFixture,
+  adminResultDetailFixture,
   adminRegistrationQueueFixture,
+  applicantResultPublishedFixture,
+  exportCommandFixture,
+  exportJobsFixture,
+  jobRunsFixture,
+  messageCommandFixture,
+  messageThreadsFixture,
+  notificationDispatchStubFixture,
+  notificationQueueFixture,
   paymentDeadlineCheckFixture,
   paymentOverrideFixture,
   paymentSummaryFixture,
+  renewalReminderRunFixture,
   assessorAvailabilityUpdateFixture,
   assessorCapacityUpdateFixture,
   assessorPreferencesUpdateFixture,
@@ -45,6 +59,18 @@ import {
   previousFeedbackResponseDraftFixture,
   signedDocumentAccessFixture,
   adminRegistrationReviewQueueFixture,
+  acceptedAssignmentFixture,
+  allocationCandidatesFixture,
+  allocationReadyEpisodesFixture,
+  assessorAssignmentsFixture,
+  assessmentSubmittedFixture,
+  assessmentTemplateFixture,
+  assessorVisitsFixture,
+  adminAssessmentDetailFixture,
+  judgeAssessmentFixture,
+  heldAllocationFixture,
+  releasedAllocationFixture,
+  resultPublishedFixture,
   parkActivationResponseFixture,
   registrationLocationSuggestionFixture,
   registrationSubmissionRequestFixture,
@@ -184,5 +210,86 @@ describe("foundation contracts", () => {
     expect(adminRegistrationReviewQueueFixture.items[0]?.status).toBe("VERIFIED_PENDING_REVIEW");
     expect(parkActivationResponseFixture.parkStatus).toBe("ACTIVE");
     expect(JSON.stringify(registrationSubmissionResponseFixture)).not.toContain("production");
+  });
+
+  it("models configurable allocation contracts without applicant Mystery leakage", () => {
+    expect(allocationReadyEpisodesFixture.items[0]?.suggestedJudgeCount).toBe(2);
+    expect(allocationCandidatesFixture.candidates[0]?.hardExcluded).toBe(false);
+    expect(allocationCandidatesFixture.candidates[0]?.flags[0]?.type).toBe("rotation");
+    expect(heldAllocationFixture.status).toBe("HELD");
+    expect(releasedAllocationFixture.notificationIntents).toContain("assignment_release_email_batch");
+    expect(assessorAssignmentsFixture.items[0]?.contactRevealAvailable).toBe(false);
+    expect(acceptedAssignmentFixture.assignment.status).toBe("ACCEPTED");
+    const serialized = JSON.stringify({
+      allocationReadyEpisodesFixture,
+      allocationCandidatesFixture,
+      assessorAssignmentsFixture
+    });
+    expect(serialized).not.toContain("provider_credentials");
+    expect(serialized).not.toContain("VAT");
+  });
+
+  it("models central Mystery redaction policy fixtures", () => {
+    expect(mysteryRedactionDecisionFixture).toMatchObject({
+      surface: "applicant_dashboard",
+      action: "redact",
+      safeDisplayStatus: "APPLICATION_UNDER_REVIEW"
+    });
+    for (const fixture of [
+      mysteryNotificationProjectionFixture,
+      mysteryMessageProjectionFixture,
+      mysterySearchExportProjectionFixture
+    ]) {
+      const serialized = JSON.stringify(fixture);
+      expect(serialized).not.toContain("MYSTERY_SHOP");
+      expect(serialized).not.toContain("judge@example");
+      expect(serialized).not.toContain("2026-05-20T");
+    }
+  });
+
+  it("models configurable visit and assessment scoring contracts without official criteria", () => {
+    expect(assessmentTemplateFixture.source).toBe("configurable_lower_env");
+    expect(assessmentTemplateFixture.criteria.every((criterion) => criterion.placeholderOnly)).toBe(true);
+    expect(assessorVisitsFixture.items[0]?.status).toBe("SCHEDULED");
+    expect(judgeAssessmentFixture.assessment.status).toBe("IN_PROGRESS");
+    expect(assessmentSubmittedFixture.assessment.status).toBe("SUBMITTED");
+    expect(assessmentSubmittedFixture.assessment.thresholdMet).toBe(true);
+    expect(adminAssessmentDetailFixture.applicantSafeProjectionAvailable).toBe(false);
+    const serialized = JSON.stringify({
+      assessmentTemplateFixture,
+      judgeAssessmentFixture,
+      assessmentSubmittedFixture
+    });
+    expect(serialized).not.toContain("official");
+    expect(serialized).not.toContain("score band");
+    expect(serialized).not.toContain("MYSTERY_SHOP");
+  });
+
+  it("models episode-first result publication without official bands", () => {
+    expect(adminResultDetailFixture.decision?.status).toBe("CONFIRMED_HELD");
+    expect(resultPublishedFixture.decision.status).toBe("PUBLISHED");
+    expect(resultPublishedFixture.publicMapEvent?.status).toBe("PENDING");
+    expect(JSON.stringify(applicantResultPublishedFixture)).not.toContain("rawScoreTotal");
+    expect(JSON.stringify(applicantResultPublishedFixture)).not.toContain("internalNotes");
+  });
+
+  it("models notifications, messages, jobs, and exports without provider delivery", () => {
+    expect(notificationQueueFixture.items[0]?.status).toBe("QUEUED");
+    expect(notificationQueueFixture.items[1]?.status).toBe("SUPPRESSED");
+    expect(notificationDispatchStubFixture.log.provider).toBe("adapter_not_configured");
+    expect(messageThreadsFixture.threads[0]?.visibleToApplicant).toBe(true);
+    expect(messageCommandFixture.auditEventId).toBeDefined();
+    expect(renewalReminderRunFixture.jobRun.status).toBe("COMPLETED");
+    expect(jobRunsFixture.items[0]?.jobType).toBe("renewal_reminders");
+    expect(exportCommandFixture.exportJob.storageProvider).toBe("lower_env_stub");
+    expect(exportJobsFixture.items[0]?.status).toBe("COMPLETED");
+    const serialized = JSON.stringify({
+      notificationQueueFixture,
+      messageThreadsFixture,
+      exportCommandFixture
+    });
+    expect(serialized).not.toContain("api key");
+    expect(serialized).not.toContain("provider_credentials");
+    expect(serialized).not.toContain("MYSTERY_SHOP");
   });
 });

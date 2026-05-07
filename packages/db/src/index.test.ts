@@ -6,6 +6,11 @@ import {
   migrationConvention,
   slice2DomainTables,
   slice8AssessorManagementTables,
+  slice9AllocationTables,
+  slice11AssessmentTables,
+  slice12ResultTables,
+  slice125NormalisedReadModelTables,
+  slice13NotificationJobExportTables,
   slice1IdentityAuditTables
 } from "./index.js";
 
@@ -37,5 +42,34 @@ describe("db foundation conventions", () => {
   it("tracks the approved Slice 8 assessor management tables", () => {
     expect(slice8AssessorManagementTables).toContain("assessor_profiles");
     expect(slice8AssessorManagementTables).toContain("assessor_capacity_declarations");
+  });
+
+  it("tracks the approved Slice 9 allocation tables", () => {
+    expect(slice9AllocationTables).toContain("allocations");
+    expect(slice9AllocationTables).toContain("judge_assignments");
+    expect(slice9AllocationTables).toContain("allocation_coi_flags");
+  });
+
+  it("tracks the approved Slice 11 assessment tables", () => {
+    expect(slice11AssessmentTables).toContain("assessment_template_criteria");
+    expect(slice11AssessmentTables).toContain("assessment_visits");
+    expect(slice11AssessmentTables).toContain("judge_assessments");
+    expect(slice11AssessmentTables).toContain("assessment_evidence");
+  });
+
+  it("tracks the approved Slice 12 result publication tables", () => {
+    expect(slice12ResultTables).toContain("decision_results");
+    expect(slice12ResultTables).toContain("result_artifacts");
+    expect(slice12ResultTables).toContain("public_map_update_events");
+  });
+
+  it("tracks the approved Slice 12.5 normalized read-model tables", () => {
+    expect(slice125NormalisedReadModelTables).toContain("assessment_score_entries");
+  });
+
+  it("tracks the approved Slice 13 notification, job, and export tables", () => {
+    expect(slice13NotificationJobExportTables).toContain("notification_queue");
+    expect(slice13NotificationJobExportTables).toContain("message_threads");
+    expect(slice13NotificationJobExportTables).toContain("export_jobs");
   });
 });

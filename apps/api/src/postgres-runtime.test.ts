@@ -25,6 +25,16 @@ describe("Postgres API runtime adapters", () => {
     await expect(createPostgresApiRuntime({ NODE_ENV: "test" })).resolves.toBeNull();
   });
 
+  it("refuses production-like runtime while lower-env providers are wired", async () => {
+    await expect(createPostgresApiRuntime({
+      API_RUNTIME_MODE: "production",
+      DATABASE_URL: "postgres://green_flag:secret@db.example:5432/green_flag",
+      COGNITO_ISSUER: "https://issuer.example",
+      COGNITO_AUDIENCE: "green-flag-api",
+      COGNITO_JWKS_URL: "https://issuer.example/.well-known/jwks.json"
+    })).rejects.toThrow("lower-env providers");
+  });
+
   it("maps Cognito subjects to internal users and scoped role assignments", async () => {
     const adminRoleAssignment = globalAdminSessionFixture.roleAssignments[0];
     if (!adminRoleAssignment) {

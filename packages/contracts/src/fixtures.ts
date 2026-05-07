@@ -5,6 +5,8 @@ import {
   applicantDashboardResponseSchema,
   adminAssessorDetailResponseSchema,
   adminAssessorListResponseSchema,
+  adminResultDetailResponseSchema,
+  applicantResultResponseSchema,
   applicationDraftResponseSchema,
   applicationDocumentsResponseSchema,
   autosaveApplicationSectionResponseSchema,
@@ -34,6 +36,16 @@ import {
   adminPaymentQueueResponseSchema,
   adminRegistrationQueueResponseSchema,
   adminRegistrationReviewQueueResponseSchema,
+  allocationCandidatesResponseSchema,
+  allocationCommandResponseSchema,
+  allocationReadyEpisodesResponseSchema,
+  assessorAssignmentDecisionResponseSchema,
+  assessorAssignmentsResponseSchema,
+  assessmentCommandResponseSchema,
+  assessmentTemplateSchema,
+  assessorVisitsResponseSchema,
+  judgeAssessmentResponseSchema,
+  adminAssessmentDetailResponseSchema,
   assessorProfileCommandResponseSchema,
   assessorSelfProfileResponseSchema,
   adminPaymentActionResponseSchema,
@@ -45,6 +57,19 @@ import {
   registrationSubmissionRequestSchema,
   registrationSubmissionResponseSchema,
   registrationSummarySchema,
+  mysteryMessageProjectionSchema,
+  mysteryNotificationProjectionSchema,
+  mysteryRedactionDecisionSchema,
+  mysterySearchExportProjectionSchema,
+  notificationQueueResponseSchema,
+  notificationDispatchStubResponseSchema,
+  messageThreadsResponseSchema,
+  messageCommandResponseSchema,
+  jobRunsResponseSchema,
+  renewalReminderRunResponseSchema,
+  exportCommandResponseSchema,
+  exportJobsResponseSchema,
+  resultCommandResponseSchema,
   sessionProfileSchema
 } from "./schemas.js";
 
@@ -1057,4 +1082,463 @@ export const parkActivationResponseFixture = parkActivationResponseSchema.parse(
   parkId: lowerEnvironmentParkFixture.id,
   parkStatus: "ACTIVE",
   notificationIntents: ["registration_approved_email"]
+});
+
+export const mysteryRedactionDecisionFixture = mysteryRedactionDecisionSchema.parse({
+  surface: "applicant_dashboard",
+  action: "redact",
+  safeDisplayStatus: "APPLICATION_UNDER_REVIEW",
+  redactedFields: [
+    "episodeType",
+    "episodeStatus",
+    "assignmentState",
+    "judgeIdentity",
+    "visitDates"
+  ],
+  reasonCodes: ["mystery_episode", "applicant_or_org_surface", "status_label_rewritten"]
+});
+
+export const mysteryNotificationProjectionFixture = mysteryNotificationProjectionSchema.parse({
+  notificationId: "45454545-4545-4454-8454-454545454545",
+  surface: "applicant_notification",
+  visible: false,
+  suppressed: true,
+  redaction: {
+    surface: "applicant_notification",
+    action: "suppress",
+    redactedFields: ["notificationType", "recipient", "suppressedReason", "assignmentState"],
+    reasonCodes: ["mystery_episode", "applicant_or_org_surface", "notification_suppressed"]
+  }
+});
+
+export const mysteryMessageProjectionFixture = mysteryMessageProjectionSchema.parse({
+  threadId: "46464646-4646-4464-8464-464646464646",
+  surface: "applicant_message",
+  visible: false,
+  hiddenMessageCount: 0,
+  redaction: {
+    surface: "applicant_message",
+    action: "suppress",
+    redactedFields: ["threadSubject", "senderIdentity", "assignmentState", "visitDates"],
+    reasonCodes: ["mystery_episode", "applicant_or_org_surface", "message_metadata_hidden"]
+  }
+});
+
+export const mysterySearchExportProjectionFixture = mysterySearchExportProjectionSchema.parse({
+  surface: "applicant_search",
+  visibleCount: 0,
+  countSuppressed: true,
+  redaction: {
+    surface: "applicant_search",
+    action: "suppress",
+    redactedFields: ["totalItems", "hiddenEpisodeCount", "resultCount"],
+    reasonCodes: ["mystery_episode", "applicant_or_org_surface", "count_suppressed"]
+  }
+});
+
+export const allocationPolicyFixture = {
+  policyId: "30303030-3030-4303-8303-303030303030",
+  countryCode: "GB",
+  cycleYear: 2026,
+  defaultDistanceKm: 80,
+  distanceWeight: 0.6,
+  clusterWeight: 0.4,
+  rotationPenalty: 20,
+  trainingThirdJudgeAllowed: true,
+  source: "configurable_lower_env" as const
+};
+
+export const allocationReadyEpisodesFixture = allocationReadyEpisodesResponseSchema.parse({
+  policy: allocationPolicyFixture,
+  items: [
+    {
+      episodeId: lowerEnvironmentFullEpisodeFixture.id,
+      applicationId: applicationSubmissionFixture.applicationId,
+      parkId: lowerEnvironmentParkFixture.id,
+      parkName: lowerEnvironmentParkFixture.name,
+      cycleYear: 2026,
+      episodeType: "FULL_ASSESSMENT",
+      episodeStatus: "READY_FOR_ALLOCATION",
+      paymentStatus: "PAID",
+      documentStatus: "complete",
+      suggestedJudgeCount: 2,
+      judgeCountReasons: ["new_site"],
+      allocationStatus: "not_started"
+    }
+  ]
+});
+
+export const allocationCandidatesFixture = allocationCandidatesResponseSchema.parse({
+  episodeId: lowerEnvironmentFullEpisodeFixture.id,
+  suggestedJudgeCount: 2,
+  excludedCandidateCount: 1,
+  policy: allocationPolicyFixture,
+  candidates: [
+    {
+      assessorId: assessorSelfProfileFixture.profile.assessorId,
+      displayName: assessorSelfProfileFixture.profile.displayName,
+      primaryRegion: assessorSelfProfileFixture.profile.primaryRegion,
+      accreditationStatus: "CURRENT_LOWER_ENV",
+      capacityStatus: "available",
+      currentAssignedCount: 0,
+      maxAssignments: 10,
+      distanceKm: 24,
+      score: 84,
+      hardExcluded: false,
+      flags: [
+        {
+          type: "rotation",
+          severity: "deprioritise",
+          reason: "Previous Full Assessment same-park judge.",
+          requiresAcknowledgement: true
+        }
+      ],
+      contactPreviewAvailable: false
+    }
+  ]
+});
+
+export const heldAllocationFixture = allocationCommandResponseSchema.parse({
+  allocationId: "31313131-3131-4313-8313-313131313131",
+  episodeId: lowerEnvironmentFullEpisodeFixture.id,
+  status: "HELD",
+  finalJudgeCount: 2,
+  suggestedJudgeCount: 2,
+  contactRevealAvailable: false,
+  notificationIntents: [],
+  auditEventId: "32323232-3232-4323-8323-323232323232",
+  overrideEventIds: [],
+  assignments: [
+    {
+      assignmentId: "33333333-3333-4333-8333-333333333333",
+      allocationId: "31313131-3131-4313-8313-313131313131",
+      episodeId: lowerEnvironmentFullEpisodeFixture.id,
+      assessorId: assessorSelfProfileFixture.profile.assessorId,
+      status: "HELD",
+      contactRevealAvailable: false,
+      version: 0,
+      updatedAt: "2026-05-06T00:00:00Z"
+    }
+  ]
+});
+
+export const releasedAllocationFixture = allocationCommandResponseSchema.parse({
+  ...heldAllocationFixture,
+  status: "RELEASED",
+  notificationIntents: ["assignment_release_email_batch"],
+  assignments: heldAllocationFixture.assignments.map((assignment) => ({
+    ...assignment,
+    status: "RELEASED"
+  }))
+});
+
+export const assessorAssignmentsFixture = assessorAssignmentsResponseSchema.parse({
+  items: [
+    {
+      assignmentId: heldAllocationFixture.assignments[0]!.assignmentId,
+      allocationId: heldAllocationFixture.allocationId,
+      episodeId: lowerEnvironmentFullEpisodeFixture.id,
+      parkName: lowerEnvironmentParkFixture.name,
+      cycleYear: 2026,
+      status: "RELEASED",
+      contactRevealAvailable: false,
+      version: 0
+    }
+  ]
+});
+
+export const acceptedAssignmentFixture = assessorAssignmentDecisionResponseSchema.parse({
+  auditEventId: "34343434-3434-4343-8343-343434343434",
+  assignment: {
+    ...heldAllocationFixture.assignments[0]!,
+    status: "ACCEPTED",
+    version: 1,
+    contactRevealAvailable: true,
+    updatedAt: "2026-05-06T00:05:00Z"
+  }
+});
+
+export const assessmentTemplateFixture = assessmentTemplateSchema.parse({
+  templateId: "47474747-4747-4474-8474-474747474747",
+  awardTrackCode: "STANDARD_GREEN_FLAG",
+  cycleYear: 2026,
+  source: "configurable_lower_env",
+  passThresholdPercent: 70,
+  criteria: [
+    {
+      criterionId: "48484848-4848-4484-8484-484848484848",
+      code: "LOWER_ENV_CRITERION_1",
+      label: "Lower-env placeholder criterion 1",
+      maxScore: 10,
+      placeholderOnly: true
+    },
+    {
+      criterionId: "49494949-4949-4494-8494-494949494949",
+      code: "LOWER_ENV_CRITERION_2",
+      label: "Lower-env placeholder criterion 2",
+      maxScore: 10,
+      placeholderOnly: true
+    }
+  ]
+});
+
+export const assessorVisitsFixture = assessorVisitsResponseSchema.parse({
+  items: [
+    {
+      visitId: "50505050-5050-4505-8505-505050505050",
+      assignmentId: heldAllocationFixture.assignments[0]!.assignmentId,
+      episodeId: lowerEnvironmentFullEpisodeFixture.id,
+      assessorId: assessorSelfProfileFixture.profile.assessorId,
+      status: "SCHEDULED",
+      scheduledStartAt: "2026-05-20T09:00:00Z",
+      scheduledEndAt: "2026-05-20T11:00:00Z",
+      locationDisclosure: "visible_to_assessor_only",
+      version: 1
+    }
+  ]
+});
+
+export const judgeAssessmentFixture = judgeAssessmentResponseSchema.parse({
+  assessment: {
+    assessmentId: "51515151-5151-4515-8515-515151515151",
+    assignmentId: heldAllocationFixture.assignments[0]!.assignmentId,
+    episodeId: lowerEnvironmentFullEpisodeFixture.id,
+    assessorId: assessorSelfProfileFixture.profile.assessorId,
+    status: "IN_PROGRESS",
+    template: assessmentTemplateFixture,
+    scores: [
+      {
+        criterionId: assessmentTemplateFixture.criteria[0]!.criterionId,
+        score: 8,
+        notes: "Synthetic lower-env score note."
+      }
+    ],
+    rawScoreTotal: 8,
+    maxScoreTotal: 20,
+    thresholdMet: false,
+    evidence: [],
+    offlineSyncVersion: 1,
+    version: 1,
+    updatedAt: "2026-05-20T11:30:00Z"
+  }
+});
+
+export const assessmentSubmittedFixture = assessmentCommandResponseSchema.parse({
+  assessment: {
+    ...judgeAssessmentFixture.assessment,
+    status: "SUBMITTED",
+    scores: assessmentTemplateFixture.criteria.map((criterion) => ({
+      criterionId: criterion.criterionId,
+      score: 8
+    })),
+    rawScoreTotal: 16,
+    thresholdMet: true,
+    version: 2,
+    updatedAt: "2026-05-20T12:00:00Z"
+  },
+  auditEventId: "52525252-5252-4525-8525-525252525252"
+});
+
+export const adminAssessmentDetailFixture = adminAssessmentDetailResponseSchema.parse({
+  episodeId: lowerEnvironmentFullEpisodeFixture.id,
+  assessments: [assessmentSubmittedFixture.assessment],
+  applicantSafeProjectionAvailable: false
+});
+
+export const adminResultDetailFixture = adminResultDetailResponseSchema.parse({
+  episodeId: lowerEnvironmentFullEpisodeFixture.id,
+  decision: {
+    decisionId: "56565656-5656-4565-8565-565656565656",
+    episodeId: lowerEnvironmentFullEpisodeFixture.id,
+    parkId: lowerEnvironmentParkFixture.id,
+    applicationId: applicationSubmissionFixture.applicationId,
+    status: "CONFIRMED_HELD",
+    outcome: "THRESHOLD_MET",
+    thresholdAcknowledged: true,
+    thresholdMet: true,
+    assessmentCount: 1,
+    rawScoreTotal: 16,
+    maxScoreTotal: 20,
+    internalNotes: "Synthetic lower-env result note.",
+    version: 0,
+    updatedAt: "2026-05-21T09:00:00Z"
+  },
+  assessments: [assessmentSubmittedFixture.assessment],
+  artifacts: [],
+  publicMapEvents: []
+});
+
+export const resultPublishedFixture = resultCommandResponseSchema.parse({
+  decision: {
+    ...adminResultDetailFixture.decision!,
+    status: "PUBLISHED",
+    publishedAt: "2026-05-21T10:00:00Z",
+    certificateId: "57575757-5757-4575-8575-575757575757",
+    publicMapEventId: "58585858-5858-4585-8585-585858585858",
+    version: 1,
+    updatedAt: "2026-05-21T10:00:00Z"
+  },
+  artifacts: [
+    {
+      artifactId: "57575757-5757-4575-8575-575757575757",
+      decisionId: "56565656-5656-4565-8565-565656565656",
+      episodeId: lowerEnvironmentFullEpisodeFixture.id,
+      artifactType: "certificate_shell",
+      storageProvider: "lower_env_stub",
+      storageKey: "lower-env/results/56565656-5656-4565-8565-565656565656/certificate-shell.pdf",
+      publicVisible: true,
+      createdAt: "2026-05-21T10:00:00Z"
+    }
+  ],
+  awardCache: {
+    parkId: lowerEnvironmentParkFixture.id,
+    episodeId: lowerEnvironmentFullEpisodeFixture.id,
+    decisionId: "56565656-5656-4565-8565-565656565656",
+    resultStatus: "PUBLISHED",
+    displayLabel: "Award published",
+    publishedAt: "2026-05-21T10:00:00Z",
+    updatedAt: "2026-05-21T10:00:00Z"
+  },
+  publicMapEvent: {
+    eventId: "58585858-5858-4585-8585-585858585858",
+    decisionId: "56565656-5656-4565-8565-565656565656",
+    parkId: lowerEnvironmentParkFixture.id,
+    episodeId: lowerEnvironmentFullEpisodeFixture.id,
+    eventType: "award_published",
+    status: "PENDING",
+    payload: {
+      parkId: lowerEnvironmentParkFixture.id,
+      displayLabel: "Award published",
+      published: true
+    },
+    createdAt: "2026-05-21T10:00:00Z"
+  },
+  auditEventId: "59595959-5959-4595-8595-595959595959"
+});
+
+export const applicantResultPublishedFixture = applicantResultResponseSchema.parse({
+  episodeId: lowerEnvironmentFullEpisodeFixture.id,
+  parkId: lowerEnvironmentParkFixture.id,
+  status: "published",
+  displayLabel: "Award published",
+  certificate: {
+    certificateId: resultPublishedFixture.decision.certificateId!,
+    downloadAvailable: true,
+    storageProvider: "lower_env_stub"
+  }
+});
+
+export const notificationQueueFixture = notificationQueueResponseSchema.parse({
+  items: [
+    {
+      notificationId: "60606060-6060-4606-8606-606060606060",
+      templateKey: "application_submitted",
+      channel: "email",
+      recipientActorId: parkManagerSessionFixture.actor.actorId,
+      recipientAddressMarker: "provider_address_deferred",
+      status: "QUEUED",
+      relatedEntityType: "application",
+      relatedEntityId: applicationSubmissionFixture.applicationId,
+      createdAt: "2026-05-22T09:00:00Z",
+      updatedAt: "2026-05-22T09:00:00Z"
+    },
+    {
+      notificationId: "61616161-6161-4616-8616-616161616161",
+      templateKey: "mystery_assignment_suppressed",
+      channel: "email",
+      recipientActorId: parkManagerSessionFixture.actor.actorId,
+      recipientAddressMarker: "provider_address_deferred",
+      status: "SUPPRESSED",
+      suppressionReason: "mystery_redaction",
+      relatedEntityType: "assessment_episode",
+      relatedEntityId: mysteryApplicantDashboardFixture.episodeId,
+      createdAt: "2026-05-22T09:01:00Z",
+      updatedAt: "2026-05-22T09:01:00Z"
+    }
+  ],
+  logs: []
+});
+
+export const notificationDispatchStubFixture = notificationDispatchStubResponseSchema.parse({
+  notification: {
+    ...notificationQueueFixture.items[0]!,
+    status: "DISPATCH_STUBBED",
+    updatedAt: "2026-05-22T09:02:00Z"
+  },
+  log: {
+    logId: "62626262-6262-4626-8626-626262626262",
+    notificationId: notificationQueueFixture.items[0]!.notificationId,
+    status: "DISPATCH_STUBBED",
+    provider: "adapter_not_configured",
+    detail: "Provider dispatch is disabled until deployment configuration is supplied.",
+    createdAt: "2026-05-22T09:02:00Z"
+  }
+});
+
+export const messageThreadsFixture = messageThreadsResponseSchema.parse({
+  threads: [
+    {
+      threadId: "63636363-6363-4636-8636-636363636363",
+      episodeId: applicationDraftFixture.episodeId,
+      parkId: applicationDraftFixture.parkId,
+      subject: "Application query",
+      status: "OPEN",
+      participantActorIds: [parkManagerSessionFixture.actor.actorId, globalAdminSessionFixture.actor.actorId],
+      visibleToApplicant: true,
+      createdAt: "2026-05-22T09:03:00Z",
+      updatedAt: "2026-05-22T09:03:00Z"
+    }
+  ],
+  messages: [
+    {
+      messageId: "64646464-6464-4646-8646-646464646464",
+      threadId: "63636363-6363-4636-8636-636363636363",
+      senderActorId: parkManagerSessionFixture.actor.actorId,
+      body: "Synthetic lower-env message.",
+      createdAt: "2026-05-22T09:03:00Z"
+    }
+  ]
+});
+
+export const messageCommandFixture = messageCommandResponseSchema.parse({
+  thread: messageThreadsFixture.threads[0]!,
+  message: messageThreadsFixture.messages[0]!,
+  auditEventId: "65656565-6565-4656-8656-656565656565"
+});
+
+export const renewalReminderRunFixture = renewalReminderRunResponseSchema.parse({
+  jobRun: {
+    jobRunId: "66666666-6666-4666-8666-666666666666",
+    jobType: "renewal_reminders",
+    status: "COMPLETED",
+    startedAt: "2026-05-22T09:04:00Z",
+    completedAt: "2026-05-22T09:04:01Z",
+    processedCount: 1,
+    detail: "Lower-env renewal reminder queue run."
+  },
+  queuedNotifications: [notificationQueueFixture.items[0]!]
+});
+
+export const jobRunsFixture = jobRunsResponseSchema.parse({
+  items: [renewalReminderRunFixture.jobRun]
+});
+
+export const exportCommandFixture = exportCommandResponseSchema.parse({
+  exportJob: {
+    exportId: "67676767-6767-4676-8676-676767676767",
+    exportType: "results",
+    format: "csv",
+    status: "COMPLETED",
+    redactionProfile: "super_admin_full_access",
+    storageProvider: "lower_env_stub",
+    storageKey: "lower-env/exports/67676767-6767-4676-8676-676767676767.csv",
+    requestedByActorId: globalAdminSessionFixture.actor.actorId,
+    createdAt: "2026-05-22T09:05:00Z",
+    completedAt: "2026-05-22T09:05:01Z"
+  },
+  auditEventId: "68686868-6868-4686-8686-686868686868"
+});
+
+export const exportJobsFixture = exportJobsResponseSchema.parse({
+  items: [exportCommandFixture.exportJob]
 });

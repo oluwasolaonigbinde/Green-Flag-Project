@@ -1,0 +1,6 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "slice": "S12-decisions-results-certificates-public-map-events",
+  "description": "Lower-environment result publication shell seed metadata. Public-map provider endpoints, applicant display classifications, and certificate legal content remain external inputs."
+}

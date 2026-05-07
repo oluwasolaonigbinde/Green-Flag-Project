@@ -16,16 +16,47 @@ import {
   type AssessorStore
 } from "./assessor.js";
 import {
+  registerAllocationRoutes,
+  type AllocationStore
+} from "./allocation.js";
+import {
+  registerAssessmentRoutes,
+  type AssessmentStore
+} from "./assessment.js";
+import {
+  registerCommunicationsRoutes,
+  type CommunicationsStore
+} from "./communications.js";
+import {
   registerRegistrationRoutes,
   type RegistrationStore
 } from "./registration.js";
+import {
+  registerResultsRoutes,
+  type ResultsStore
+} from "./results.js";
+import type { RegistrationRepository } from "./postgres-domain-stores/registration-repository.js";
+import type { ApplicantRepository } from "./postgres-domain-stores/applicant-repository.js";
+import type { AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
+import type { AllocationRepository } from "./postgres-domain-stores/allocation-repository.js";
+import type { AssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
 
 export interface BuildAppOptions {
   resolveSession?: SessionResolver;
   applicantStore?: ApplicantStore;
   assessorStore?: AssessorStore;
+  allocationStore?: AllocationStore;
+  assessmentStore?: AssessmentStore;
+  resultsStore?: ResultsStore;
+  communicationsStore?: CommunicationsStore;
   registrationStore?: RegistrationStore;
+  registrationRepository?: RegistrationRepository;
+  applicantRepository?: ApplicantRepository;
+  assessorRepository?: AssessorRepository;
+  allocationRepository?: AllocationRepository;
+  assessmentRepository?: AssessmentRepository;
   auditLedger?: AuditLedger;
+  productionLike?: boolean;
 }
 
 function errorPayload(error: ApiError) {
@@ -45,7 +76,34 @@ export function buildApp(options: BuildAppOptions = {}) {
   const resolveSession = options.resolveSession ?? createDependencyMissingResolver();
   const applicantStore = options.applicantStore;
   const assessorStore = options.assessorStore;
+  const allocationStore = options.allocationStore;
+  const assessmentStore = options.assessmentStore;
+  const resultsStore = options.resultsStore;
+  const communicationsStore = options.communicationsStore;
   const registrationStore = options.registrationStore;
+  const registrationRepository = options.registrationRepository;
+  const applicantRepository = options.applicantRepository;
+  const assessorRepository = options.assessorRepository;
+  const allocationRepository = options.allocationRepository;
+  const assessmentRepository = options.assessmentRepository;
+
+  if (options.productionLike) {
+    if (registrationStore && !registrationRepository) {
+      throw new Error("Production/staging registration routes require a DB-first registration repository.");
+    }
+    if (applicantStore && !applicantRepository) {
+      throw new Error("Production/staging applicant/document/payment routes require a DB-first applicant repository.");
+    }
+    if (assessorStore && !assessorRepository) {
+      throw new Error("Production/staging assessor command routes require a DB-first assessor repository.");
+    }
+    if (allocationStore && !allocationRepository) {
+      throw new Error("Production/staging allocation command routes require a DB-first allocation repository.");
+    }
+    if (assessmentStore && !assessmentRepository) {
+      throw new Error("Production/staging assessment command routes require a DB-first assessment repository.");
+    }
+  }
 
   app.get("/health", async () =>
     healthResponseSchema.parse({
@@ -64,18 +122,20 @@ export function buildApp(options: BuildAppOptions = {}) {
     reply.send(sessionProfileSchema.parse(session));
   });
 
-  if (registrationStore) {
+  if (registrationStore || registrationRepository) {
     registerRegistrationRoutes(app, {
       resolveSession,
-      store: registrationStore,
+      ...(registrationStore ? { store: registrationStore } : {}),
+      ...(registrationRepository ? { repository: registrationRepository } : {}),
       ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
     });
   }
 
-  if (applicantStore) {
+  if (applicantStore || applicantRepository) {
     registerApplicantRoutes(app, {
       resolveSession,
-      store: applicantStore,
+      ...(applicantStore ? { store: applicantStore } : {}),
+      ...(applicantRepository ? { repository: applicantRepository } : {}),
       ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
     });
   }
@@ -92,6 +152,49 @@ export function buildApp(options: BuildAppOptions = {}) {
     registerAssessorRoutes(app, {
       resolveSession,
       store: assessorStore,
+      ...(assessorRepository ? { repository: assessorRepository } : {}),
+      ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
+    });
+  }
+
+  if (allocationStore && applicantStore && assessorStore) {
+    registerAllocationRoutes(app, {
+      resolveSession,
+      allocationStore,
+      applicantStore,
+      assessorStore,
+      ...(allocationRepository ? { repository: allocationRepository } : {}),
+      ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
+    });
+  }
+
+  if (assessmentStore && allocationStore && applicantStore && assessorStore) {
+    registerAssessmentRoutes(app, {
+      resolveSession,
+      assessmentStore,
+      allocationStore,
+      applicantStore,
+      assessorStore,
+      ...(assessmentRepository ? { repository: assessmentRepository } : {}),
+      ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
+    });
+  }
+
+  if (resultsStore && assessmentStore && applicantStore) {
+    registerResultsRoutes(app, {
+      resolveSession,
+      resultsStore,
+      assessmentStore,
+      applicantStore,
+      ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
+    });
+  }
+
+  if (communicationsStore && applicantStore) {
+    registerCommunicationsRoutes(app, {
+      resolveSession,
+      communicationsStore,
+      applicantStore,
       ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
     });
   }

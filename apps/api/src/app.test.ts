@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { globalAdminSessionFixture } from "@green-flag/contracts";
 import { buildApp } from "./app.js";
 import { ApiError } from "./auth.js";
+import { createApplicantStore } from "./applicant.js";
+import { createRegistrationStore } from "./registration.js";
+import { createAllocationStore } from "./allocation.js";
+import { createAssessorStore } from "./assessor.js";
+import { createAssessmentStore } from "./assessment.js";
 
 describe("foundation api", () => {
   it("returns health", async () => {
@@ -64,5 +69,42 @@ describe("foundation api", () => {
         message: "Missing Authorization header."
       }
     });
+  });
+
+  it("requires DB-first repositories for production-like registration and applicant route wiring", () => {
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        registrationStore: createRegistrationStore()
+      })
+    ).toThrow("DB-first registration repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        applicantStore: createApplicantStore()
+      })
+    ).toThrow("DB-first applicant repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        assessorStore: createAssessorStore()
+      })
+    ).toThrow("DB-first assessor repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        allocationStore: createAllocationStore()
+      })
+    ).toThrow("DB-first allocation repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        assessmentStore: createAssessmentStore()
+      })
+    ).toThrow("DB-first assessment repository");
   });
 });

@@ -22,6 +22,12 @@ import {
   type SessionResolver
 } from "./auth.js";
 import { createPostgresDomainStores, type DomainStoreBundle } from "./postgres-domain-stores.js";
+import { assertProductionRuntimeSafety, isProductionLikeRuntime } from "./runtime-safety.js";
+import { PostgresRegistrationRepository, type RegistrationRepository } from "./postgres-domain-stores/registration-repository.js";
+import { PostgresApplicantRepository, type ApplicantRepository } from "./postgres-domain-stores/applicant-repository.js";
+import { PostgresAssessorRepository, type AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
+import { PostgresAllocationRepository, type AllocationRepository } from "./postgres-domain-stores/allocation-repository.js";
+import { PostgresAssessmentRepository, type AssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
 
 interface InternalUserRow {
   id: string;
@@ -101,7 +107,23 @@ export class PostgresAuditLedger implements AuditLedger {
   async append(event: AuditEvent): Promise<void> {
     const parsed = auditEventSchema.parse(event);
     const primaryScope = parsed.actor.scopes[0] ?? { type: "GLOBAL" as const };
-    await (this.unitOfWork?.currentClient() ?? this.client).query(
+    const client = this.unitOfWork?.currentClient() ?? this.client;
+    if (parsed.actor.role === "SYSTEM") {
+      await client.query(
+        `
+          INSERT INTO internal_users (id, email, display_name, status, redaction_profile)
+          VALUES ($1, $2, $3, 'ACTIVE', $4)
+          ON CONFLICT (id) DO NOTHING
+        `,
+        [
+          parsed.actor.actorId,
+          `${parsed.actor.cognitoSubject}@system.local`,
+          parsed.actor.cognitoSubject,
+          parsed.actor.redactionProfile
+        ]
+      );
+    }
+    await client.query(
       `
         INSERT INTO audit_events (
           id,
@@ -151,20 +173,24 @@ export interface PostgresApiRuntime {
   resolveSession: SessionResolver;
   auditLedger: AuditLedger;
   stores: DomainStoreBundle;
+  registrationRepository: RegistrationRepository;
+  applicantRepository: ApplicantRepository;
+  assessorRepository: AssessorRepository;
+  allocationRepository: AllocationRepository;
+  assessmentRepository: AssessmentRepository;
 }
 
-export function isProductionLikeRuntime(env: NodeJS.ProcessEnv = process.env) {
-  return env.NODE_ENV === "production" || env.API_RUNTIME_MODE === "production" || env.API_RUNTIME_MODE === "staging";
-}
+export { isProductionLikeRuntime } from "./runtime-safety.js";
 
 export async function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.env): Promise<PostgresApiRuntime | null> {
   const dbConfig = readPostgresRuntimeConfig(env);
   if (!dbConfig) {
     if (isProductionLikeRuntime(env)) {
-      throw new Error("Production-like API runtime requires DATABASE_URL. Refusing to start with in-memory stores.");
+      assertProductionRuntimeSafety({ env, databaseConfigured: false });
     }
     return null;
   }
+  assertProductionRuntimeSafety({ env, databaseConfigured: true, dbFirstRepositoriesConfigured: true });
 
   const issuer = env.COGNITO_ISSUER;
   const audience = env.COGNITO_AUDIENCE;
@@ -175,6 +201,8 @@ export async function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.
 
   const pool = createPostgresPool(dbConfig);
   const unitOfWork = createUnitOfWork(pool);
+  const auditLedger = new PostgresAuditLedger(pool, unitOfWork);
+  const allowLowerEnvironmentFixtures = !isProductionLikeRuntime(env);
   return {
     pool,
     unitOfWork,
@@ -182,7 +210,18 @@ export async function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.
       identityRepository: new PostgresIdentityRepository(pool),
       verifyBearerToken: createCognitoJwtVerifier({ issuer, audience, jwksUrl })
     }),
-    auditLedger: new PostgresAuditLedger(pool, unitOfWork),
-    stores: await createPostgresDomainStores({ client: pool, unitOfWork })
+    auditLedger,
+    registrationRepository: new PostgresRegistrationRepository(pool, unitOfWork, auditLedger, {
+      allowStaticLowerEnvVerificationToken: allowLowerEnvironmentFixtures
+    }),
+    applicantRepository: new PostgresApplicantRepository(pool, unitOfWork, auditLedger),
+    assessorRepository: new PostgresAssessorRepository(pool, unitOfWork, auditLedger),
+    allocationRepository: new PostgresAllocationRepository(pool, unitOfWork, auditLedger),
+    assessmentRepository: new PostgresAssessmentRepository(pool, unitOfWork, auditLedger),
+    stores: await createPostgresDomainStores({
+      client: pool,
+      unitOfWork,
+      allowLowerEnvironmentFixtures
+    })
   };
 }

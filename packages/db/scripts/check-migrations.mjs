@@ -16,12 +16,19 @@ const forbiddenLaterSliceTables = [
   /public_map_update_events/i,
   /results/i,
   /scores/i,
+  /assessment_template_configs/i,
+  /assessment_visits/i,
+  /judge_assessments/i,
+  /assessment_evidence/i,
   /judge_profiles/i,
   /judge_exclusions/i,
   /judge_assignment_history/i,
   /judge_clusters/i,
   /judge_assignments/i,
   /decision_results/i,
+  /result_artifacts/i,
+  /park_award_cache/i,
+  /assessment_score_entries/i,
   /visits/i
 ];
 const approvedSlice3Tables = [
@@ -52,6 +59,41 @@ const approvedSlice8Tables = [
   "assessor_availability_windows",
   "assessor_capacity_declarations"
 ];
+const approvedSlice9Tables = [
+  "allocation_policy_configs",
+  "allocations",
+  "judge_assignments",
+  "allocation_coi_flags"
+];
+const approvedSlice11Tables = [
+  "assessment_template_configs",
+  "assessment_template_criteria",
+  "assessment_visits",
+  "judge_assessments",
+  "assessment_evidence"
+];
+const approvedSlice12Tables = [
+  "decision_results",
+  "result_artifacts",
+  "park_award_cache",
+  "public_map_update_events"
+];
+const approvedSlice125Tables = [
+  "assessment_score_entries"
+];
+const approvedSlice13Tables = [
+  "notification_template_versions",
+  "notification_queue",
+  "notification_logs",
+  "notification_suppressions",
+  "message_threads",
+  "message_entries",
+  "job_runs",
+  "export_jobs",
+  "applications",
+  "payments",
+  "results"
+];
 
 if (files.length === 0) {
   throw new Error("No SQL migrations found");
@@ -77,6 +119,21 @@ for (const file of files) {
     sqlBody = sqlBody.replaceAll(table, "");
   }
   for (const table of approvedSlice8Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice9Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice11Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice12Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice125Tables) {
+    sqlBody = sqlBody.replaceAll(table, "");
+  }
+  for (const table of approvedSlice13Tables) {
     sqlBody = sqlBody.replaceAll(table, "");
   }
   if (!sql.includes("-- migrate:down")) {

@@ -1,0 +1,21 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "slice": "S09-allocation-workflow-candidates-coi-release-acceptance",
+  "allocationPolicy": {
+    "source": "configurable_lower_env",
+    "countryCode": "GB",
+    "cycleYear": 2026,
+    "defaultDistanceKm": 80,
+    "distanceWeight": 0.6,
+    "clusterWeight": 0.4,
+    "rotationPenalty": 20,
+    "trainingThirdJudgeAllowed": true
+  },
+  "importBoundaries": [
+    "country_and_operator_judge_count_variants",
+    "live_conflict_register",
+    "distance_and_cluster_enrichment",
+    "training_third_judge_authorisation"
+  ]
+}

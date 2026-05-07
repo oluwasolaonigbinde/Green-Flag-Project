@@ -1,0 +1,6 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "slice": "S13-notifications-messaging-jobs-exports-reminders",
+  "description": "Lower-environment notification template and job/export metadata. Provider credentials, approved template copy, and production export formats remain external inputs."
+}

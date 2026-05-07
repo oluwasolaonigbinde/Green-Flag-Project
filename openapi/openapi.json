@@ -1920,6 +1920,551 @@
           }
         }
       }
+    },
+    "/api/v1/admin/allocations/ready-episodes": {
+      "get": {
+        "operationId": "listAllocationReadyEpisodes",
+        "summary": "List allocation-ready assessment episodes.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocationReadyEpisodesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/allocations/{episodeId}/candidates": {
+      "get": {
+        "operationId": "listAllocationCandidates",
+        "summary": "List configurable allocation candidates.",
+        "parameters": [
+          {
+            "name": "episodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocationCandidatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/allocations/{episodeId}/hold": {
+      "post": {
+        "operationId": "holdAllocation",
+        "summary": "Hold a draft allocation without notifying judges.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocationCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/allocations/{allocationId}/release": {
+      "post": {
+        "operationId": "releaseAllocation",
+        "summary": "Release a held allocation to assigned judges.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocationCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/allocations/{allocationId}/reassign": {
+      "post": {
+        "operationId": "reassignAllocation",
+        "summary": "Reassign an allocation assignment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllocationCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assignments": {
+      "get": {
+        "operationId": "listAssessorAssignments",
+        "summary": "List released assignments for the authenticated assessor.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorAssignmentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assignments/{assignmentId}/accept": {
+      "post": {
+        "operationId": "acceptAssessorAssignment",
+        "summary": "Accept a released assessor assignment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorAssignmentDecisionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assignments/{assignmentId}/decline": {
+      "post": {
+        "operationId": "declineAssessorAssignment",
+        "summary": "Decline a released assessor assignment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorAssignmentDecisionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/visits": {
+      "get": {
+        "operationId": "listAssessorVisits",
+        "summary": "List assessor visits.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessorVisitsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/visits/{assignmentId}/schedule": {
+      "post": {
+        "operationId": "scheduleAssessorVisit",
+        "summary": "Schedule a visit for an assigned assessment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assessments/{assignmentId}": {
+      "get": {
+        "operationId": "getJudgeAssessment",
+        "summary": "Open a judge assessment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JudgeAssessmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assessments/{assessmentId}/scores": {
+      "patch": {
+        "operationId": "updateAssessmentScores",
+        "summary": "Update lower-env assessment score entries.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assessments/{assessmentId}/evidence": {
+      "post": {
+        "operationId": "addAssessmentEvidence",
+        "summary": "Add assessment evidence metadata.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessor/assessments/{assessmentId}/submit": {
+      "post": {
+        "operationId": "submitAssessment",
+        "summary": "Submit a judge assessment.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/assessments/{episodeId}": {
+      "get": {
+        "operationId": "getAdminAssessmentDetail",
+        "summary": "Read admin assessment detail for an episode.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAssessmentDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/results/{episodeId}": {
+      "get": {
+        "operationId": "getAdminResultDetail",
+        "summary": "Read admin result detail for an episode.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminResultDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/results/{episodeId}/hold": {
+      "post": {
+        "operationId": "holdDecisionResult",
+        "summary": "Hold a threshold-acknowledged decision result.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/results/{decisionId}/publish": {
+      "post": {
+        "operationId": "publishDecisionResult",
+        "summary": "Publish a held decision result.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/results/{decisionId}/withdraw": {
+      "post": {
+        "operationId": "withdrawDecisionResult",
+        "summary": "Withdraw a published decision result.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/results/{episodeId}": {
+      "get": {
+        "operationId": "getApplicantResult",
+        "summary": "Read applicant-safe result publication status.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicantResultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notifications/queue": {
+      "get": {
+        "operationId": "listNotificationQueue",
+        "summary": "List notification queue and logs.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationQueueResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notifications/{notificationId}/dispatch-stub": {
+      "post": {
+        "operationId": "dispatchNotificationStub",
+        "summary": "Record lower-env notification dispatch stub.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDispatchStubResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/applicant/messages": {
+      "get": {
+        "operationId": "listApplicantMessages",
+        "summary": "List applicant-visible message threads.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageThreadsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createApplicantMessageThread",
+        "summary": "Create applicant message thread.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/messages": {
+      "get": {
+        "operationId": "listAdminMessages",
+        "summary": "List admin message threads.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageThreadsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAdminMessageThread",
+        "summary": "Create admin message thread.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jobs/renewal-reminders/run": {
+      "post": {
+        "operationId": "runRenewalReminders",
+        "summary": "Run lower-env renewal reminder queue job.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenewalReminderRunResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jobs": {
+      "get": {
+        "operationId": "listJobRuns",
+        "summary": "List job runs.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRunsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/exports": {
+      "get": {
+        "operationId": "listExportJobs",
+        "summary": "List export jobs.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportJobsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createExportJob",
+        "summary": "Create lower-env export job shell.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportCommandResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3655,6 +4200,130 @@
             "format": "uuid"
           }
         }
+      },
+      "AllocationReadyEpisodesResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "policy": {
+            "type": "object"
+          }
+        }
+      },
+      "AllocationCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "policy": {
+            "type": "object"
+          }
+        }
+      },
+      "HoldAllocationRequest": {
+        "type": "object"
+      },
+      "ReleaseAllocationRequest": {
+        "type": "object"
+      },
+      "ReassignAllocationRequest": {
+        "type": "object"
+      },
+      "AllocationCommandResponse": {
+        "type": "object"
+      },
+      "AssessorAssignmentsResponse": {
+        "type": "object"
+      },
+      "AssessorAssignmentDecisionRequest": {
+        "type": "object"
+      },
+      "AssessorAssignmentDecisionResponse": {
+        "type": "object"
+      },
+      "AssessorVisitsResponse": {
+        "type": "object"
+      },
+      "ScheduleVisitRequest": {
+        "type": "object"
+      },
+      "JudgeAssessmentResponse": {
+        "type": "object"
+      },
+      "UpdateAssessmentScoresRequest": {
+        "type": "object"
+      },
+      "AddAssessmentEvidenceRequest": {
+        "type": "object"
+      },
+      "SubmitAssessmentRequest": {
+        "type": "object"
+      },
+      "AssessmentCommandResponse": {
+        "type": "object"
+      },
+      "AdminAssessmentDetailResponse": {
+        "type": "object"
+      },
+      "AdminResultDetailResponse": {
+        "type": "object"
+      },
+      "HoldDecisionRequest": {
+        "type": "object"
+      },
+      "PublishDecisionRequest": {
+        "type": "object"
+      },
+      "WithdrawDecisionRequest": {
+        "type": "object"
+      },
+      "ResultCommandResponse": {
+        "type": "object"
+      },
+      "ApplicantResultResponse": {
+        "type": "object"
+      },
+      "NotificationQueueResponse": {
+        "type": "object"
+      },
+      "NotificationDispatchStubResponse": {
+        "type": "object"
+      },
+      "CreateMessageThreadRequest": {
+        "type": "object"
+      },
+      "MessageThreadsResponse": {
+        "type": "object"
+      },
+      "MessageCommandResponse": {
+        "type": "object"
+      },
+      "RenewalReminderRunRequest": {
+        "type": "object"
+      },
+      "RenewalReminderRunResponse": {
+        "type": "object"
+      },
+      "JobRunsResponse": {
+        "type": "object"
+      },
+      "ExportRequest": {
+        "type": "object"
+      },
+      "ExportCommandResponse": {
+        "type": "object"
+      },
+      "ExportJobsResponse": {
+        "type": "object"
       }
     }
   }

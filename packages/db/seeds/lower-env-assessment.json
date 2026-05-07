@@ -1,0 +1,25 @@
+{
+  "environment": "lower-env-only",
+  "syntheticOnly": true,
+  "slice": "S11-visits-assessment-scoring-framework",
+  "assessmentTemplate": {
+    "source": "configurable_lower_env",
+    "awardTrackCode": "STANDARD_GREEN_FLAG",
+    "cycleYear": 2026,
+    "passThresholdPercent": 70,
+    "criteria": [
+      {
+        "code": "LOWER_ENV_CRITERION_1",
+        "label": "Lower-env placeholder criterion 1",
+        "maxScore": 10,
+        "placeholderOnly": true
+      },
+      {
+        "code": "LOWER_ENV_CRITERION_2",
+        "label": "Lower-env placeholder criterion 2",
+        "maxScore": 10,
+        "placeholderOnly": true
+      }
+    ]
+  }
+}

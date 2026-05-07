@@ -6,9 +6,19 @@ const app = buildApp(runtime
   ? {
       resolveSession: runtime.resolveSession,
       auditLedger: runtime.auditLedger,
+      productionLike: true,
+      registrationRepository: runtime.registrationRepository,
+      applicantRepository: runtime.applicantRepository,
+      assessorRepository: runtime.assessorRepository,
+      allocationRepository: runtime.allocationRepository,
+      assessmentRepository: runtime.assessmentRepository,
       registrationStore: runtime.stores.registrationStore,
       applicantStore: runtime.stores.applicantStore,
-      assessorStore: runtime.stores.assessorStore
+      assessorStore: runtime.stores.assessorStore,
+      allocationStore: runtime.stores.allocationStore,
+      assessmentStore: runtime.stores.assessmentStore,
+      resultsStore: runtime.stores.resultsStore,
+      communicationsStore: runtime.stores.communicationsStore
     }
   : {});
 const port = Number(process.env.PORT ?? "4000");

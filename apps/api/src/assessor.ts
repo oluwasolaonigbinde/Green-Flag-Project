@@ -22,6 +22,7 @@ import {
   type SessionProfile,
   type SessionResolver
 } from "./auth.js";
+import type { AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
 
 type AssessorProfile = typeof assessorSelfProfileFixture.profile;
 type AssessorQueueQuery = ReturnType<typeof adminAssessorQueueQuerySchema.parse>;
@@ -207,10 +208,12 @@ export function registerAssessorRoutes(
   {
     resolveSession,
     store,
+    repository,
     auditLedger = defaultAuditLedger
   }: {
     resolveSession: SessionResolver;
     store: AssessorStore;
+    repository?: AssessorRepository;
     auditLedger?: AuditLedger;
   }
 ) {
@@ -222,6 +225,9 @@ export function registerAssessorRoutes(
   app.get("/api/v1/assessor/profile", async (request) => {
     const session = await resolveSession(request);
     requireAssessorSelf(session);
+    if (repository) {
+      return repository.getSelfProfile(session.actor.actorId);
+    }
     return assessorSelfProfileResponseSchema.parse({
       profile: profileForActor(store, session),
       assignmentLoadDeferred: true,
@@ -233,6 +239,9 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAssessorSelf(session);
     const input = updateAssessorPreferencesRequestSchema.parse(request.body);
+    if (repository) {
+      return repository.updatePreferences({ actorId: session.actor.actorId, body: input, actor: session.actor, request });
+    }
     const profile = profileForActor(store, session);
     assertVersion(profile, input.clientVersion);
     const beforeState = structuredClone(profile.preferences);
@@ -253,6 +262,9 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAssessorSelf(session);
     const input = updateAssessorAvailabilityRequestSchema.parse(request.body);
+    if (repository) {
+      return repository.updateAvailability({ actorId: session.actor.actorId, body: input, actor: session.actor, request });
+    }
     const profile = profileForActor(store, session);
     assertVersion(profile, input.clientVersion);
     const beforeState = structuredClone(profile.availability);
@@ -276,6 +288,9 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAssessorSelf(session);
     const input = updateAssessorCapacityRequestSchema.parse(request.body);
+    if (repository) {
+      return repository.updateCapacity({ actorId: session.actor.actorId, body: input, actor: session.actor, request });
+    }
     const profile = profileForActor(store, session);
     assertVersion(profile, input.clientVersion);
     const beforeState = structuredClone(profile.capacity);
@@ -299,6 +314,9 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAdmin(session);
     const query = parseAdminQuery(request);
+    if (repository) {
+      return repository.listAdminProfiles(query);
+    }
     const items = listItems(store, query);
     return adminAssessorListResponseSchema.parse({
       items: paginate(items, query),
@@ -310,6 +328,11 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAdmin(session);
     const input = upsertAssessorProfileRequestSchema.parse(request.body);
+    if (repository) {
+      const response = await repository.createAdminProfile({ body: input, actor: session.actor, request });
+      reply.status(201);
+      return response;
+    }
     const existing = [...store.profiles.values()].find(
       (candidate) => candidate.internalUserId === input.internalUserId
     );
@@ -355,6 +378,9 @@ export function registerAssessorRoutes(
     const session = await resolveSession(request);
     requireAdmin(session);
     const params = request.params as { assessorId: string };
+    if (repository) {
+      return repository.getAdminProfile(params.assessorId);
+    }
     return adminAssessorDetailResponseSchema.parse({
       profile: requireProfile(store, params.assessorId),
       allocationCandidateGenerationAvailable: false,
@@ -367,6 +393,9 @@ export function registerAssessorRoutes(
     requireAdmin(session);
     const params = request.params as { assessorId: string };
     const input = upsertAssessorProfileRequestSchema.partial({ internalUserId: true }).parse(request.body);
+    if (repository) {
+      return repository.updateAdminProfile({ assessorId: params.assessorId, body: input, actor: session.actor, request });
+    }
     const profile = requireProfile(store, params.assessorId);
     const beforeState = structuredClone(profile);
     Object.assign(profile, {
@@ -393,6 +422,15 @@ export function registerAssessorRoutes(
     requireAdmin(session);
     const params = request.params as { assessorId: string };
     const body = (request.body ?? {}) as { reason?: string; idempotencyKey?: string };
+    if (repository) {
+      return repository.disableAdminProfile({
+        assessorId: params.assessorId,
+        reason: body.reason,
+        idempotencyKey: body.idempotencyKey,
+        actor: session.actor,
+        request
+      });
+    }
     const profile = requireProfile(store, params.assessorId);
     const beforeState = { profileStatus: profile.profileStatus };
     profile.profileStatus = "INACTIVE";
@@ -412,3 +450,4 @@ export function registerAssessorRoutes(
 
 export type AssessorProfileRecord = z.infer<typeof assessorSelfProfileResponseSchema>["profile"];
 export type AssessorRole = Extract<RoleType, "JUDGE">;
+export type { AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";

@@ -22,6 +22,7 @@ import {
   type SessionProfile,
   type SessionResolver
 } from "./auth.js";
+import type { RegistrationRepository } from "./postgres-domain-stores/registration-repository.js";
 
 type RegistrationRecord = {
   registrationId: string;
@@ -163,20 +164,31 @@ export function registerRegistrationRoutes(
   {
     resolveSession,
     store,
+    repository,
     auditLedger = defaultAuditLedger
   }: {
     resolveSession: SessionResolver;
-    store: RegistrationStore;
+    store?: RegistrationStore;
+    repository?: RegistrationRepository;
     auditLedger?: AuditLedger;
   }
 ) {
   async function audit(event: AuditEvent) {
+    if (!store) {
+      throw new ApiError("dependency_missing", 503, "Registration map store is not configured for this route.");
+    }
     store.audits.push(await appendAuditEvent(auditLedger, event));
   }
 
   app.post("/api/v1/registrations", async (request, reply) => {
     const input = registrationSubmissionRequestSchema.parse(request.body);
     const idempotencyKey = request.headers["idempotency-key"]?.toString();
+    if (repository) {
+      const response = await repository.submit({ body: input, idempotencyKey, request });
+      reply.status(201);
+      return response;
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     const eligibility = evaluateEligibility(input.eligibility);
     const duplicateWarning = detectDuplicate({
       parkName: input.parkName,
@@ -245,6 +257,10 @@ export function registerRegistrationRoutes(
   app.post("/api/v1/registrations/:registrationId/location-lookup", async (request) => {
     const input = registrationLocationLookupRequestSchema.parse(request.body);
     const params = request.params as { registrationId: string };
+    if (repository) {
+      return repository.recordLocationLookup({ registrationId: params.registrationId, body: input, request });
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     if (!store.records.has(params.registrationId)) {
       throw new ApiError("dependency_missing", 404, "Registration submission was not found.");
     }
@@ -277,6 +293,10 @@ export function registerRegistrationRoutes(
 
   app.get("/api/v1/registrations/:registrationId", async (request) => {
     const params = request.params as { registrationId: string };
+    if (repository) {
+      return repository.getSummary(params.registrationId);
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     const record = store.records.get(params.registrationId);
     if (!record) {
       throw new ApiError("dependency_missing", 404, "Registration submission was not found.");
@@ -292,6 +312,10 @@ export function registerRegistrationRoutes(
   app.post("/api/v1/registrations/:registrationId/verify-email", async (request) => {
     const params = request.params as { registrationId: string };
     const input = emailVerificationRequestSchema.parse(request.body);
+    if (repository) {
+      return repository.verifyEmail({ registrationId: params.registrationId, token: input.token, request });
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     const record = store.records.get(params.registrationId);
     if (!record) {
       throw new ApiError("dependency_missing", 404, "Registration submission was not found.");
@@ -315,17 +339,19 @@ export function registerRegistrationRoutes(
       };
     }
 
-    record.status = "VERIFIED_PENDING_REVIEW";
-    await audit(
-      buildAuditEvent({
-        action: "VERIFY_REGISTRATION_EMAIL",
-        entityId: record.registrationId,
-        actor: publicRegistrationActor,
-        request: requestMetadata(request),
-        beforeState,
-        afterState: { status: record.status }
-      })
-    );
+    await store.withTransaction(async () => {
+      record.status = "VERIFIED_PENDING_REVIEW";
+      await audit(
+        buildAuditEvent({
+          action: "VERIFY_REGISTRATION_EMAIL",
+          entityId: record.registrationId,
+          actor: publicRegistrationActor,
+          request: requestMetadata(request),
+          beforeState,
+          afterState: { status: record.status }
+        })
+      );
+    });
 
     return {
       registrationId: record.registrationId,
@@ -338,6 +364,10 @@ export function registerRegistrationRoutes(
   app.get("/api/v1/admin/registration-review-queue", async (request) => {
     const session = await resolveSession(request);
     requireAdmin(session);
+    if (repository) {
+      return repository.listPendingReview();
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
 
     return adminRegistrationReviewQueueResponseSchema.parse({
       items: [...store.records.values()]
@@ -359,6 +389,15 @@ export function registerRegistrationRoutes(
     const session = await resolveSession(request);
     requireAdmin(session);
     const params = request.params as { registrationId: string };
+    if (repository) {
+      return repository.approve({
+        registrationId: params.registrationId,
+        actor: session.actor,
+        request,
+        idempotencyKey: request.headers["idempotency-key"]?.toString()
+      });
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     const record = store.records.get(params.registrationId);
     if (!record) {
       throw new ApiError("dependency_missing", 404, "Registration submission was not found.");
@@ -368,18 +407,20 @@ export function registerRegistrationRoutes(
     }
 
     const beforeState = { status: record.status };
-    record.status = "APPROVED";
-    record.parkId ??= randomUUID();
-    await audit(
-      buildAuditEvent({
-        action: "APPROVE_REGISTRATION",
-        entityId: record.registrationId,
-        actor: session.actor,
-        request: requestMetadata(request, request.headers["idempotency-key"]?.toString()),
-        beforeState,
-        afterState: { status: record.status, parkStatus: "ACTIVE", parkId: record.parkId }
-      })
-    );
+    await store.withTransaction(async () => {
+      record.status = "APPROVED";
+      record.parkId ??= randomUUID();
+      await audit(
+        buildAuditEvent({
+          action: "APPROVE_REGISTRATION",
+          entityId: record.registrationId,
+          actor: session.actor,
+          request: requestMetadata(request, request.headers["idempotency-key"]?.toString()),
+          beforeState,
+          afterState: { status: record.status, parkStatus: "ACTIVE", parkId: record.parkId }
+        })
+      );
+    });
 
     return parkActivationResponseSchema.parse({
       registrationId: record.registrationId,
@@ -396,6 +437,16 @@ export function registerRegistrationRoutes(
     const params = request.params as { registrationId: string };
     const body = adminRegistrationDecisionRequestSchema.parse(request.body ?? {});
     const reason = body.reason;
+    if (repository) {
+      return repository.reject({
+        registrationId: params.registrationId,
+        actor: session.actor,
+        request,
+        idempotencyKey: request.headers["idempotency-key"]?.toString(),
+        reason
+      });
+    }
+    if (!store) throw new ApiError("dependency_missing", 503, "Registration persistence is not configured.");
     const record = store.records.get(params.registrationId);
     if (!record) {
       throw new ApiError("dependency_missing", 404, "Registration submission was not found.");
@@ -405,18 +456,20 @@ export function registerRegistrationRoutes(
     }
 
     const beforeState = { status: record.status };
-    record.status = "REJECTED";
-    await audit(
-      buildAuditEvent({
-        action: "REJECT_REGISTRATION",
-        entityId: record.registrationId,
-        actor: session.actor,
-        request: requestMetadata(request, request.headers["idempotency-key"]?.toString()),
-        beforeState,
-        afterState: { status: record.status, parkStatus: "INACTIVE" },
-        reason
-      })
-    );
+    await store.withTransaction(async () => {
+      record.status = "REJECTED";
+      await audit(
+        buildAuditEvent({
+          action: "REJECT_REGISTRATION",
+          entityId: record.registrationId,
+          actor: session.actor,
+          request: requestMetadata(request, request.headers["idempotency-key"]?.toString()),
+          beforeState,
+          afterState: { status: record.status, parkStatus: "INACTIVE" },
+          reason
+        })
+      );
+    });
 
     return parkActivationResponseSchema.parse({
       registrationId: record.registrationId,

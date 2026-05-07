@@ -60,6 +60,43 @@ export const slice8AssessorManagementTables = [
   "assessor_capacity_declarations"
 ] as const;
 
+export const slice9AllocationTables = [
+  "allocation_policy_configs",
+  "allocations",
+  "judge_assignments",
+  "allocation_coi_flags"
+] as const;
+
+export const slice11AssessmentTables = [
+  "assessment_template_configs",
+  "assessment_template_criteria",
+  "assessment_visits",
+  "judge_assessments",
+  "assessment_evidence"
+] as const;
+
+export const slice12ResultTables = [
+  "decision_results",
+  "result_artifacts",
+  "park_award_cache",
+  "public_map_update_events"
+] as const;
+
+export const slice125NormalisedReadModelTables = [
+  "assessment_score_entries"
+] as const;
+
+export const slice13NotificationJobExportTables = [
+  "notification_template_versions",
+  "notification_queue",
+  "notification_logs",
+  "notification_suppressions",
+  "message_threads",
+  "message_entries",
+  "job_runs",
+  "export_jobs"
+] as const;
+
 export const slice1IdentityAuditTables = [
   "internal_users",
   "cognito_identity_links",
@@ -83,11 +120,13 @@ export const adminOverrideEventTablePolicy = {
 export {
   createPostgresPool,
   createUnitOfWork,
+  isProductionLikePostgresRuntime,
   readPostgresRuntimeConfig,
   runMigrations,
   UnitOfWork,
   withTransaction,
   type PostgresRuntimeConfig,
+  type PostgresSslConfig,
   type SqlClient,
   type SqlPool,
   type SqlPoolClient,
