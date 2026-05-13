@@ -16,6 +16,7 @@ import type { AllocationStore } from "./allocation.js";
 import type { AssessorStore } from "./assessor.js";
 import { requireOperationalResourceAccess } from "./authorization.js";
 import { ApiError, appendAuditEvent, type AuditEvent, type AuditLedger, type SessionProfile, type SessionResolver } from "./auth.js";
+import { requireMutationAllowed } from "./authorization.js";
 import type { ApplicantStore } from "./applicant.js";
 import type { AssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
 
@@ -197,6 +198,7 @@ export function registerAssessmentRoutes(
 
   app.post("/api/v1/assessor/visits/:assignmentId/schedule", async (request) => {
     const session = await resolveSession(request);
+    requireMutationAllowed(session);
     const params = request.params as { assignmentId: string };
     const input = scheduleVisitRequestSchema.parse(request.body);
     if (repository) {
@@ -242,6 +244,7 @@ export function registerAssessmentRoutes(
 
   app.patch("/api/v1/assessor/assessments/:assessmentId/scores", async (request) => {
     const session = await resolveSession(request);
+    requireMutationAllowed(session);
     const params = request.params as { assessmentId: string };
     const input = updateAssessmentScoresRequestSchema.parse(request.body);
     if (repository) {
@@ -272,6 +275,7 @@ export function registerAssessmentRoutes(
 
   app.post("/api/v1/assessor/assessments/:assessmentId/evidence", async (request) => {
     const session = await resolveSession(request);
+    requireMutationAllowed(session);
     const params = request.params as { assessmentId: string };
     const input = addAssessmentEvidenceRequestSchema.parse(request.body);
     if (repository) {
@@ -306,6 +310,7 @@ export function registerAssessmentRoutes(
 
   app.post("/api/v1/assessor/assessments/:assessmentId/submit", async (request) => {
     const session = await resolveSession(request);
+    requireMutationAllowed(session);
     const params = request.params as { assessmentId: string };
     const input = submitAssessmentRequestSchema.parse(request.body);
     if (repository) {

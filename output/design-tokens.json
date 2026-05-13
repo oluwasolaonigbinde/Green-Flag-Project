@@ -1,0 +1,3640 @@
+{
+  "colors": [
+    {
+      "type": "solid",
+      "hex": "#000000",
+      "opacity": 0.05999999865889549,
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Button — Buy me a Coffee (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#0069ff",
+      "opacity": 1,
+      "r": 0,
+      "g": 105,
+      "b": 255,
+      "a": 1,
+      "usedIn": "In Progress"
+    },
+    {
+      "type": "solid",
+      "hex": "#015de7",
+      "opacity": 1,
+      "r": 1,
+      "g": 93,
+      "b": 231,
+      "a": 1,
+      "usedIn": "view more"
+    },
+    {
+      "type": "solid",
+      "hex": "#1106a0",
+      "opacity": 1,
+      "r": 17,
+      "g": 6,
+      "b": 160,
+      "a": 1,
+      "usedIn": "Link 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#148600",
+      "opacity": 1,
+      "r": 20,
+      "g": 134,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Frame 8"
+    },
+    {
+      "type": "solid",
+      "hex": "#15132c",
+      "opacity": 1,
+      "r": 21,
+      "g": 19,
+      "b": 44,
+      "a": 1,
+      "usedIn": "Color=Black"
+    },
+    {
+      "type": "solid",
+      "hex": "#194242",
+      "opacity": 1,
+      "r": 25,
+      "g": 66,
+      "b": 66,
+      "a": 1,
+      "usedIn": "Link 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#1961f3",
+      "opacity": 1,
+      "r": 25,
+      "g": 97,
+      "b": 243,
+      "a": 1,
+      "usedIn": "Ellipse 12"
+    },
+    {
+      "type": "solid",
+      "hex": "#19a600",
+      "opacity": 1,
+      "r": 25,
+      "g": 166,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Approved"
+    },
+    {
+      "type": "solid",
+      "hex": "#1daeef",
+      "opacity": 1,
+      "r": 29,
+      "g": 174,
+      "b": 239,
+      "a": 1,
+      "usedIn": "Vector"
+    },
+    {
+      "type": "solid",
+      "hex": "#1e1e1e",
+      "opacity": 1,
+      "r": 30,
+      "g": 30,
+      "b": 30,
+      "a": 1,
+      "usedIn": "Icon (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#252525",
+      "opacity": 1,
+      "r": 37,
+      "g": 37,
+      "b": 37,
+      "a": 1,
+      "usedIn": "13"
+    },
+    {
+      "type": "solid",
+      "hex": "#262167",
+      "opacity": 1,
+      "r": 38,
+      "g": 33,
+      "b": 103,
+      "a": 1,
+      "usedIn": "Buy me a Coffee"
+    },
+    {
+      "type": "solid",
+      "hex": "#292d32",
+      "opacity": 1,
+      "r": 41,
+      "g": 45,
+      "b": 50,
+      "a": 1,
+      "usedIn": "Once a judge has saved score, they will be the only judge who can edit and submit it. The report can be saved and submitted by either judge, the report than be downloaded, amended and reuploaded by either judge befire final submission."
+    },
+    {
+      "type": "solid",
+      "hex": "#2a5f9e",
+      "opacity": 1,
+      "r": 42,
+      "g": 95,
+      "b": 158,
+      "a": 1,
+      "usedIn": "Vector"
+    },
+    {
+      "type": "solid",
+      "hex": "#2c2c2c",
+      "opacity": 1,
+      "r": 44,
+      "g": 44,
+      "b": 44,
+      "a": 1,
+      "usedIn": "Checkbox"
+    },
+    {
+      "type": "solid",
+      "hex": "#301c81",
+      "opacity": 1,
+      "r": 48,
+      "g": 28,
+      "b": 129,
+      "a": 1,
+      "usedIn": "Link 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#333333",
+      "opacity": 1,
+      "r": 51,
+      "g": 51,
+      "b": 51,
+      "a": 1,
+      "usedIn": "Typography"
+    },
+    {
+      "type": "solid",
+      "hex": "#34c759",
+      "opacity": 1,
+      "r": 52,
+      "g": 199,
+      "b": 89,
+      "a": 1,
+      "usedIn": "Toggle"
+    },
+    {
+      "type": "solid",
+      "hex": "#393939",
+      "opacity": 1,
+      "r": 57,
+      "g": 57,
+      "b": 57,
+      "a": 1,
+      "usedIn": "12-03-2025"
+    },
+    {
+      "type": "solid",
+      "hex": "#3ec3ff",
+      "opacity": 1,
+      "r": 62,
+      "g": 195,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Vector"
+    },
+    {
+      "type": "solid",
+      "hex": "#46180f",
+      "opacity": 1,
+      "r": 70,
+      "g": 24,
+      "b": 15,
+      "a": 1,
+      "usedIn": "Link 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#49454f",
+      "opacity": 1,
+      "r": 73,
+      "g": 69,
+      "b": 79,
+      "a": 1,
+      "usedIn": "icon"
+    },
+    {
+      "type": "solid",
+      "hex": "#4a4580",
+      "opacity": 1,
+      "r": 74,
+      "g": 69,
+      "b": 128,
+      "a": 1,
+      "usedIn": "Unlock Premium to support development and get extra features. Or fuel the work with a coffee ☕️"
+    },
+    {
+      "type": "solid",
+      "hex": "#4c4c4c",
+      "opacity": 1,
+      "r": 76,
+      "g": 76,
+      "b": 76,
+      "a": 1,
+      "usedIn": "Code"
+    },
+    {
+      "type": "solid",
+      "hex": "#577751",
+      "opacity": 1,
+      "r": 87,
+      "g": 119,
+      "b": 81,
+      "a": 1,
+      "usedIn": "Welcome back! Manage your organization's award applications."
+    },
+    {
+      "type": "solid",
+      "hex": "#611200",
+      "opacity": 1,
+      "r": 97,
+      "g": 18,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Link 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#6750a4",
+      "opacity": 1,
+      "r": 103,
+      "g": 80,
+      "b": 164,
+      "a": 1,
+      "usedIn": "icon"
+    },
+    {
+      "type": "solid",
+      "hex": "#686868",
+      "opacity": 1,
+      "r": 104,
+      "g": 104,
+      "b": 104,
+      "a": 1,
+      "usedIn": "Filter"
+    },
+    {
+      "type": "solid",
+      "hex": "#6c63ff",
+      "opacity": 1,
+      "r": 108,
+      "g": 99,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Button — Get Premium"
+    },
+    {
+      "type": "solid",
+      "hex": "#757575",
+      "opacity": 1,
+      "r": 117,
+      "g": 117,
+      "b": 117,
+      "a": 1,
+      "usedIn": "Description"
+    },
+    {
+      "type": "solid",
+      "hex": "#787880",
+      "opacity": 0.1599999964237213,
+      "r": 120,
+      "g": 120,
+      "b": 128,
+      "a": 1,
+      "usedIn": "Toggle"
+    },
+    {
+      "type": "solid",
+      "hex": "#808080",
+      "opacity": 1,
+      "r": 128,
+      "g": 128,
+      "b": 128,
+      "a": 1,
+      "usedIn": "Welcome back! Manage your organization's award applications."
+    },
+    {
+      "type": "solid",
+      "hex": "#81d4fa",
+      "opacity": 1,
+      "r": 129,
+      "g": 212,
+      "b": 250,
+      "a": 1,
+      "usedIn": "Color=Blue"
+    },
+    {
+      "type": "solid",
+      "hex": "#898989",
+      "opacity": 1,
+      "r": 137,
+      "g": 137,
+      "b": 137,
+      "a": 1,
+      "usedIn": "Dashboard"
+    },
+    {
+      "type": "solid",
+      "hex": "#9747ff",
+      "opacity": 1,
+      "r": 151,
+      "g": 71,
+      "b": 255,
+      "a": 1,
+      "usedIn": "document upload (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#989898",
+      "opacity": 1,
+      "r": 152,
+      "g": 152,
+      "b": 152,
+      "a": 1,
+      "usedIn": "Schedule"
+    },
+    {
+      "type": "solid",
+      "hex": "#9fe8a4",
+      "opacity": 1,
+      "r": 159,
+      "g": 232,
+      "b": 164,
+      "a": 1,
+      "usedIn": "Color=Green"
+    },
+    {
+      "type": "solid",
+      "hex": "#a2a0a0",
+      "opacity": 1,
+      "r": 162,
+      "g": 160,
+      "b": 160,
+      "a": 1,
+      "usedIn": "Search"
+    },
+    {
+      "type": "solid",
+      "hex": "#a7a7a7",
+      "opacity": 0.05999999865889549,
+      "r": 167,
+      "g": 167,
+      "b": 167,
+      "a": 1,
+      "usedIn": "Frame 505 (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#a9acb4",
+      "opacity": 1,
+      "r": 169,
+      "g": 172,
+      "b": 180,
+      "a": 1,
+      "usedIn": "94 KB of 94 KB"
+    },
+    {
+      "type": "solid",
+      "hex": "#b8b8b8",
+      "opacity": 1,
+      "r": 184,
+      "g": 184,
+      "b": 184,
+      "a": 1,
+      "usedIn": "Frame 873 (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#c9c9c9",
+      "opacity": 1,
+      "r": 201,
+      "g": 201,
+      "b": 201,
+      "a": 1,
+      "usedIn": "Ellipse 21"
+    },
+    {
+      "type": "solid",
+      "hex": "#cbd0dc",
+      "opacity": 1,
+      "r": 203,
+      "g": 208,
+      "b": 220,
+      "a": 1,
+      "usedIn": "Rectangle 7 (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#ccedc6",
+      "opacity": 1,
+      "r": 204,
+      "g": 237,
+      "b": 198,
+      "a": 1,
+      "usedIn": "Frame 8"
+    },
+    {
+      "type": "solid",
+      "hex": "#cfaeff",
+      "opacity": 1,
+      "r": 207,
+      "g": 174,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Color=Purple"
+    },
+    {
+      "type": "solid",
+      "hex": "#d2f0ff",
+      "opacity": 1,
+      "r": 210,
+      "g": 240,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Event"
+    },
+    {
+      "type": "solid",
+      "hex": "#d5ffcd",
+      "opacity": 1,
+      "r": 213,
+      "g": 255,
+      "b": 205,
+      "a": 1,
+      "usedIn": "Frame 558"
+    },
+    {
+      "type": "solid",
+      "hex": "#d82042",
+      "opacity": 1,
+      "r": 216,
+      "g": 32,
+      "b": 66,
+      "a": 1,
+      "usedIn": "Fail"
+    },
+    {
+      "type": "solid",
+      "hex": "#d8d8d8",
+      "opacity": 0.41999998688697815,
+      "r": 216,
+      "g": 216,
+      "b": 216,
+      "a": 1,
+      "usedIn": "Frame 122"
+    },
+    {
+      "type": "solid",
+      "hex": "#d9d9d9",
+      "opacity": 1,
+      "r": 217,
+      "g": 217,
+      "b": 217,
+      "a": 1,
+      "usedIn": "Frame 12 (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#e1deee",
+      "opacity": 1,
+      "r": 225,
+      "g": 222,
+      "b": 238,
+      "a": 1,
+      "usedIn": "Notely — Support & Premium (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#e2e2e2",
+      "opacity": 1,
+      "r": 226,
+      "g": 226,
+      "b": 226,
+      "a": 1,
+      "usedIn": "Ellipse 11"
+    },
+    {
+      "type": "solid",
+      "hex": "#e3e3e3",
+      "opacity": 1,
+      "r": 227,
+      "g": 227,
+      "b": 227,
+      "a": 1,
+      "usedIn": "Frame 548"
+    },
+    {
+      "type": "solid",
+      "hex": "#e4fccc",
+      "opacity": 0.20000000298023224,
+      "r": 228,
+      "g": 252,
+      "b": 204,
+      "a": 1,
+      "usedIn": "Component 18"
+    },
+    {
+      "type": "solid",
+      "hex": "#e5e5e5",
+      "opacity": 0.10000000149011612,
+      "r": 229,
+      "g": 229,
+      "b": 229,
+      "a": 1,
+      "usedIn": "Image Placeholder"
+    },
+    {
+      "type": "solid",
+      "hex": "#e8e6fb",
+      "opacity": 1,
+      "r": 232,
+      "g": 230,
+      "b": 251,
+      "a": 1,
+      "usedIn": "Button — Buy me a Coffee"
+    },
+    {
+      "type": "solid",
+      "hex": "#e8e8e8",
+      "opacity": 1,
+      "r": 232,
+      "g": 232,
+      "b": 232,
+      "a": 1,
+      "usedIn": "Frame 446"
+    },
+    {
+      "type": "solid",
+      "hex": "#ebebeb",
+      "opacity": 1,
+      "r": 235,
+      "g": 235,
+      "b": 235,
+      "a": 1,
+      "usedIn": "Completed"
+    },
+    {
+      "type": "solid",
+      "hex": "#ebfbe8",
+      "opacity": 1,
+      "r": 235,
+      "g": 251,
+      "b": 232,
+      "a": 1,
+      "usedIn": "Frame 26"
+    },
+    {
+      "type": "solid",
+      "hex": "#ecffe9",
+      "opacity": 1,
+      "r": 236,
+      "g": 255,
+      "b": 233,
+      "a": 1,
+      "usedIn": "Frame 27"
+    },
+    {
+      "type": "solid",
+      "hex": "#ed4c5c",
+      "opacity": 1,
+      "r": 237,
+      "g": 76,
+      "b": 92,
+      "a": 1,
+      "usedIn": "Vector"
+    },
+    {
+      "type": "solid",
+      "hex": "#eeeded",
+      "opacity": 1,
+      "r": 238,
+      "g": 237,
+      "b": 237,
+      "a": 1,
+      "usedIn": "Frame 478"
+    },
+    {
+      "type": "solid",
+      "hex": "#eef1f7",
+      "opacity": 1,
+      "r": 238,
+      "g": 241,
+      "b": 247,
+      "a": 1,
+      "usedIn": "Rectangle 7"
+    },
+    {
+      "type": "solid",
+      "hex": "#eef5ff",
+      "opacity": 1,
+      "r": 238,
+      "g": 245,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Frame 48"
+    },
+    {
+      "type": "solid",
+      "hex": "#efefef",
+      "opacity": 1,
+      "r": 239,
+      "g": 239,
+      "b": 239,
+      "a": 1,
+      "usedIn": "Frame 201"
+    },
+    {
+      "type": "solid",
+      "hex": "#f1f1f1",
+      "opacity": 1,
+      "r": 241,
+      "g": 241,
+      "b": 241,
+      "a": 1,
+      "usedIn": "Component 14"
+    },
+    {
+      "type": "solid",
+      "hex": "#f1f2de",
+      "opacity": 1,
+      "r": 241,
+      "g": 242,
+      "b": 222,
+      "a": 1,
+      "usedIn": "Frame 26"
+    },
+    {
+      "type": "solid",
+      "hex": "#f2dc16",
+      "opacity": 1,
+      "r": 242,
+      "g": 220,
+      "b": 22,
+      "a": 1,
+      "usedIn": "Awaiting Approval"
+    },
+    {
+      "type": "solid",
+      "hex": "#f4f4f4",
+      "opacity": 1,
+      "r": 244,
+      "g": 244,
+      "b": 244,
+      "a": 1,
+      "usedIn": "Component 3"
+    },
+    {
+      "type": "solid",
+      "hex": "#f5f5f5",
+      "opacity": 1,
+      "r": 245,
+      "g": 245,
+      "b": 245,
+      "a": 1,
+      "usedIn": "Frame 1017"
+    },
+    {
+      "type": "solid",
+      "hex": "#f5feed",
+      "opacity": 1,
+      "r": 245,
+      "g": 254,
+      "b": 237,
+      "a": 1,
+      "usedIn": "Frame 90"
+    },
+    {
+      "type": "solid",
+      "hex": "#f6f4f9",
+      "opacity": 1,
+      "r": 246,
+      "g": 244,
+      "b": 249,
+      "a": 1,
+      "usedIn": "Notely — Support & Premium"
+    },
+    {
+      "type": "solid",
+      "hex": "#f6f6f6",
+      "opacity": 1,
+      "r": 246,
+      "g": 246,
+      "b": 246,
+      "a": 1,
+      "usedIn": "Frame 28"
+    },
+    {
+      "type": "solid",
+      "hex": "#f7f7f7",
+      "opacity": 1,
+      "r": 247,
+      "g": 247,
+      "b": 247,
+      "a": 1,
+      "usedIn": "Frame 942"
+    },
+    {
+      "type": "solid",
+      "hex": "#f7fff6",
+      "opacity": 1,
+      "r": 247,
+      "g": 255,
+      "b": 246,
+      "a": 1,
+      "usedIn": "Frame 16"
+    },
+    {
+      "type": "solid",
+      "hex": "#f8f8f8",
+      "opacity": 0.3799999952316284,
+      "r": 248,
+      "g": 248,
+      "b": 248,
+      "a": 1,
+      "usedIn": "Frame 1046"
+    },
+    {
+      "type": "solid",
+      "hex": "#f9f4f4",
+      "opacity": 1,
+      "r": 249,
+      "g": 244,
+      "b": 244,
+      "a": 1,
+      "usedIn": "Frame 146 (stroke)"
+    },
+    {
+      "type": "solid",
+      "hex": "#f9f9f9",
+      "opacity": 1,
+      "r": 249,
+      "g": 249,
+      "b": 249,
+      "a": 1,
+      "usedIn": "Frame 297"
+    },
+    {
+      "type": "solid",
+      "hex": "#f9fff9",
+      "opacity": 1,
+      "r": 249,
+      "g": 255,
+      "b": 249,
+      "a": 1,
+      "usedIn": "Frame 466"
+    },
+    {
+      "type": "solid",
+      "hex": "#fafafa",
+      "opacity": 1,
+      "r": 250,
+      "g": 250,
+      "b": 250,
+      "a": 1,
+      "usedIn": "Frame 28"
+    },
+    {
+      "type": "solid",
+      "hex": "#fafef5",
+      "opacity": 1,
+      "r": 250,
+      "g": 254,
+      "b": 245,
+      "a": 1,
+      "usedIn": "Frame 502"
+    },
+    {
+      "type": "solid",
+      "hex": "#fbfbfb",
+      "opacity": 1,
+      "r": 251,
+      "g": 251,
+      "b": 251,
+      "a": 1,
+      "usedIn": "Frame 18"
+    },
+    {
+      "type": "solid",
+      "hex": "#fcf8f8",
+      "opacity": 1,
+      "r": 252,
+      "g": 248,
+      "b": 248,
+      "a": 1,
+      "usedIn": "Frame 260"
+    },
+    {
+      "type": "solid",
+      "hex": "#fee6c9",
+      "opacity": 1,
+      "r": 254,
+      "g": 230,
+      "b": 201,
+      "a": 1,
+      "usedIn": "Event"
+    },
+    {
+      "type": "solid",
+      "hex": "#ff5e3a",
+      "opacity": 1,
+      "r": 255,
+      "g": 94,
+      "b": 58,
+      "a": 1,
+      "usedIn": "Color=Red"
+    },
+    {
+      "type": "solid",
+      "hex": "#ff8c00",
+      "opacity": 1,
+      "r": 255,
+      "g": 140,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Notely: Component which controls all notes"
+    },
+    {
+      "type": "solid",
+      "hex": "#ffa500",
+      "opacity": 1,
+      "r": 255,
+      "g": 165,
+      "b": 0,
+      "a": 1,
+      "usedIn": "Pending"
+    },
+    {
+      "type": "solid",
+      "hex": "#ffd527",
+      "opacity": 1,
+      "r": 255,
+      "g": 213,
+      "b": 39,
+      "a": 1,
+      "usedIn": "Color=Yellow"
+    },
+    {
+      "type": "solid",
+      "hex": "#ffd9d9",
+      "opacity": 1,
+      "r": 255,
+      "g": 217,
+      "b": 217,
+      "a": 1,
+      "usedIn": "Event"
+    },
+    {
+      "type": "solid",
+      "hex": "#ffeded",
+      "opacity": 1,
+      "r": 255,
+      "g": 237,
+      "b": 237,
+      "a": 1,
+      "usedIn": "Frame 270"
+    },
+    {
+      "type": "solid",
+      "hex": "#fffafa",
+      "opacity": 1,
+      "r": 255,
+      "g": 250,
+      "b": 250,
+      "a": 1,
+      "usedIn": "Frame 824"
+    },
+    {
+      "type": "solid",
+      "hex": "#ffffff",
+      "opacity": 1,
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 1,
+      "usedIn": "Get Premium"
+    }
+  ],
+  "typography": [
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 400,
+      "fontSize": 8,
+      "lineHeightPx": 10,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "CENTER",
+      "usedIn": "Event Title"
+    },
+    {
+      "fontFamily": "Poppins",
+      "fontWeight": 500,
+      "fontSize": 10,
+      "lineHeightPx": 15,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "CENTER",
+      "usedIn": "Typography"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 10,
+      "lineHeightPx": 12.102272033691406,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Caption"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 12,
+      "lineHeightPx": 14.522727012634277,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Lynsey Atherton"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 12,
+      "lineHeightPx": 14.522727012634277,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "RIGHT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Applicant"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 12,
+      "lineHeightPx": 14.522727012634277,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "Applications: 100"
+    },
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 400,
+      "fontSize": 12,
+      "lineHeightPx": 15,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "CENTER",
+      "usedIn": "Victoria Park; Johnny Mayes, 9:30am"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 400,
+      "fontSize": 12,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 153.6279296875,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Transcribe"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 12,
+      "lineHeightPx": 14.3203125,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "River Walk"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 14,
+      "lineHeightPx": 16.94318199157715,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Resources"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 14,
+      "lineHeightPx": 22.899999618530273,
+      "lineHeightPercent": 135.15760803222656,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "New Application"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 14,
+      "lineHeightPx": 26.399999618530273,
+      "lineHeightPercent": 155.81488037109375,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "J O"
+    },
+    {
+      "fontFamily": "Font Awesome 5 Pro",
+      "fontWeight": 400,
+      "fontSize": 14,
+      "lineHeightPx": 17.5,
+      "lineHeightPercent": 125,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "usedIn": ""
+    },
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 400,
+      "fontSize": 14,
+      "lineHeightPx": 17.5,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "usedIn": "Sun"
+    },
+    {
+      "fontFamily": "Sometype Mono",
+      "fontWeight": 400,
+      "fontSize": 14,
+      "lineHeightPx": 26.399999618530273,
+      "lineHeightPercent": 157.14283752441406,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Whispering_Woods_Park_Inspection.pdf"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 400,
+      "fontSize": 14,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 131.68109130859375,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Go Home"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 15,
+      "lineHeightPx": 18.15340805053711,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Link 3"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 16,
+      "lineHeightPx": 26.399999618530273,
+      "lineHeightPercent": 136.33802795410156,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Welcome back! Manage your organization's award applications."
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 16,
+      "lineHeightPx": 19.363636016845703,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Search"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 16,
+      "lineHeightPx": 22.399999618530273,
+      "lineHeightPercent": 115.68075561523438,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "..."
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 16,
+      "lineHeightPx": 19.363636016845703,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Excellence in Park Management"
+    },
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 400,
+      "fontSize": 16,
+      "lineHeightPx": 20,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "usedIn": "13"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 400,
+      "fontSize": 16,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 115.22095489501953,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Sustainability"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 16,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 115.22095489501953,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "River Walk"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 17,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 108.44324493408203,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "Time"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 18,
+      "lineHeightPx": 26.399999618530273,
+      "lineHeightPercent": 121.1893539428711,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Contact Details"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 18,
+      "lineHeightPx": 21.784090042114258,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Emergency Contact"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 20,
+      "lineHeightPx": 24.204544067382812,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Green Flag Awards"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 20,
+      "lineHeightPx": 24.204544067382812,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Organization Applications"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 20,
+      "lineHeightPx": 24.204544067382812,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Desk Assessment"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 20,
+      "lineHeightPx": 24.204544067382812,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Content"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 300,
+      "fontSize": 20,
+      "lineHeightPx": 24.204544067382812,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Content"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 510,
+      "fontSize": 20,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 92.1767578125,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "Submission Successful"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 20,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 92.1767578125,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Assessment"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 23,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 80.15370178222656,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "Sign In"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 24,
+      "lineHeightPx": 29.045454025268555,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "2"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 24,
+      "lineHeightPx": 29.045454025268555,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Green Flag Awards Organisation"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 24,
+      "lineHeightPx": 29.045454025268555,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Confirm Allocation"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 24,
+      "lineHeightPx": 29.045454025268555,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Placeholder Icon"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 590,
+      "fontSize": 24,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 76.81396484375,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Site Information"
+    },
+    {
+      "fontFamily": "SF Pro",
+      "fontWeight": 510,
+      "fontSize": 24,
+      "lineHeightPx": 22,
+      "lineHeightPercent": 76.81396484375,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "10"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 28,
+      "lineHeightPx": 33.8863639831543,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Green Flag Awards Organisation"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 28,
+      "lineHeightPx": 33.8863639831543,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "2009"
+    },
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 900,
+      "fontSize": 28,
+      "lineHeightPx": 35,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "usedIn": "March"
+    },
+    {
+      "fontFamily": "Lato",
+      "fontWeight": 300,
+      "fontSize": 28,
+      "lineHeightPx": 35,
+      "lineHeightPercent": 104.16666412353516,
+      "lineHeightUnit": "FONT_SIZE_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "CENTER",
+      "usedIn": "2021"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 600,
+      "fontSize": 32,
+      "lineHeightPx": 38.727272033691406,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Reference Screens"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 32,
+      "lineHeightPx": 38.727272033691406,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Title"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 400,
+      "fontSize": 36,
+      "lineHeightPx": 43.568180084228516,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Unlock Premium to support development and get extra features. Or fuel the work with a coffee ☕️"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 36,
+      "lineHeightPx": 43.568180084228516,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Buy me a Coffee"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 40,
+      "lineHeightPx": 48.409088134765625,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Assessor’s mobile App"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 48,
+      "lineHeightPx": 26.399999618530273,
+      "lineHeightPercent": 45.446006774902344,
+      "lineHeightUnit": "PIXELS",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Mystery Shopping"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 48,
+      "lineHeightPx": 58.09090805053711,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Emoji"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 700,
+      "fontSize": 54,
+      "lineHeightPx": 65.3522720336914,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "LEFT",
+      "textAlignVertical": "TOP",
+      "usedIn": "Thanks for using Notely! ✨"
+    },
+    {
+      "fontFamily": "Inter",
+      "fontWeight": 500,
+      "fontSize": 64,
+      "lineHeightPx": 77.45454406738281,
+      "lineHeightPercent": 100,
+      "lineHeightUnit": "INTRINSIC_%",
+      "letterSpacing": 0,
+      "textAlignHorizontal": "CENTER",
+      "textAlignVertical": "TOP",
+      "usedIn": "100%"
+    }
+  ],
+  "spacing": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    6.5,
+    6.500000476837158,
+    7,
+    7.15000057220459,
+    7.5,
+    8,
+    9,
+    9.239999771118164,
+    9.25,
+    9.486910820007324,
+    10,
+    10.010000228881836,
+    10.175000190734863,
+    11,
+    11.011000633239746,
+    11.454545021057129,
+    12,
+    12.000000953674316,
+    12.586206436157227,
+    12.727272033691406,
+    13,
+    13.200000762939453,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    21.39655113220215,
+    22,
+    22.5,
+    22.655170440673828,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    40,
+    41,
+    45,
+    46,
+    47,
+    48,
+    50,
+    61,
+    64,
+    83,
+    85,
+    90,
+    98,
+    110,
+    122,
+    130,
+    132,
+    134,
+    137,
+    148,
+    149,
+    150,
+    154,
+    165,
+    176,
+    189,
+    191,
+    193,
+    200,
+    201,
+    213,
+    231,
+    244,
+    250,
+    254,
+    269,
+    270,
+    339,
+    344,
+    353,
+    415,
+    420,
+    508,
+    515,
+    521,
+    966
+  ],
+  "borderRadii": [
+    2,
+    2.5,
+    2.545454502105713,
+    2.9598114490509033,
+    3.6179776191711426,
+    4,
+    4.300000190734863,
+    5,
+    5.797101020812988,
+    6,
+    6.202247142791748,
+    7.905759334564209,
+    8,
+    10,
+    13,
+    13.000000953674316,
+    15,
+    16,
+    18.5,
+    20,
+    20.020000457763672,
+    21.33333396911621,
+    22.5,
+    24,
+    24.000001907348633,
+    26,
+    30,
+    36,
+    36.499996185302734,
+    40,
+    50,
+    99,
+    100,
+    220
+  ],
+  "effects": [
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 64"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 65"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 66"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 67"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 68"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 76"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 77"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 78"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 64"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 65"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 66"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 67"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 73"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 73"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 404"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 380"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 380"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 380"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 380"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 380"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 64"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 65"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 66"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 67"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 71"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 99"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 73"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 73"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 1,
+      "usedIn": "Frame 145"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 2,
+      "usedIn": "Frame 158"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 2,
+      "usedIn": "Frame 158"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 460"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 64"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 65"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 66"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 67"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 70"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 68"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 71"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 69"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "usedIn": "Frame 72"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 416"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 261"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 274"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000f",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000026",
+      "offset": {
+        "x": 0,
+        "y": 3
+      },
+      "radius": 8,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#0000000a",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 0,
+      "spread": 1,
+      "usedIn": "Knob"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 468"
+    },
+    {
+      "type": "DROP_SHADOW",
+      "color": "#00000040",
+      "offset": {
+        "x": 0,
+        "y": 0
+      },
+      "radius": 4,
+      "usedIn": "Frame 1"
+    }
+  ]
+}

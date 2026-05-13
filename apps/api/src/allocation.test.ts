@@ -190,7 +190,12 @@ describe("allocation workflow slice api", () => {
         ...globalAdminSessionFixture.actor,
         role: "KBT_ADMIN",
         scopes: [{ type: "COUNTRY", id: "01010101-0101-4101-8101-010101010101" }]
-      }
+      },
+      roleAssignments: [{
+        ...globalAdminSessionFixture.roleAssignments[0]!,
+        role: "KBT_ADMIN",
+        scope: { type: "COUNTRY", id: "01010101-0101-4101-8101-010101010101" }
+      }]
     };
 
     const applicantAttempt = buildAllocationApp(async () => parkManagerSessionFixture);

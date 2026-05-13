@@ -584,8 +584,9 @@ async function exportScreenshots(token, fileKey, frameIds, outputDir) {
   const screenshotsDir = join(outputDir, "screenshots");
   ensureDir(screenshotsDir);
 
-  // Figma GET images endpoint accepts up to ~200 IDs at once
-  const BATCH_SIZE = 50;
+  // Large Figma files can time out when too many big frames render together.
+  // Keep batches modest and fall back to single-frame requests when needed.
+  const BATCH_SIZE = 10;
   const batches = [];
 
   for (let i = 0; i < frameIds.length; i += BATCH_SIZE) {
@@ -602,14 +603,32 @@ async function exportScreenshots(token, fileKey, frameIds, outputDir) {
       `  📸 Requesting screenshots batch ${batchIndex + 1}/${batches.length} (${batch.length} frames)...`
     );
 
-    const data = await figmaGet(
-      `/images/${fileKey}?ids=${encodeURIComponent(ids)}&scale=${SCREENSHOT_SCALE}&format=png`,
-      token
-    );
+    try {
+      const data = await figmaGet(
+        `/images/${fileKey}?ids=${encodeURIComponent(ids)}&scale=${SCREENSHOT_SCALE}&format=png`,
+        token
+      );
 
-    if (data.images) {
-      for (const [id, url] of Object.entries(data.images)) {
-        if (url) urlMap[id] = url;
+      if (data.images) {
+        for (const [id, url] of Object.entries(data.images)) {
+          if (url) urlMap[id] = url;
+        }
+      }
+    } catch (err) {
+      console.log(`  ⚠️  Batch render failed: ${err.message}`);
+      console.log("  ↳ Retrying this batch one frame at a time...");
+      for (const frame of batch) {
+        try {
+          const data = await figmaGet(
+            `/images/${fileKey}?ids=${encodeURIComponent(frame.id)}&scale=${SCREENSHOT_SCALE}&format=png`,
+            token
+          );
+          const url = data.images?.[frame.id];
+          if (url) urlMap[frame.id] = url;
+        } catch (singleErr) {
+          console.log(`  ⚠️  Skipping "${frame.name}" (${frame.id}): ${singleErr.message}`);
+        }
+        await sleep(RATE_LIMIT_DELAY_MS);
       }
     }
 

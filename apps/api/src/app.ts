@@ -40,6 +40,8 @@ import type { ApplicantRepository } from "./postgres-domain-stores/applicant-rep
 import type { AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
 import type { AllocationRepository } from "./postgres-domain-stores/allocation-repository.js";
 import type { AssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
+import type { CommunicationsRepository } from "./postgres-domain-stores/communications-repository.js";
+import type { ResultsRepository } from "./postgres-domain-stores/results-repository.js";
 
 export interface BuildAppOptions {
   resolveSession?: SessionResolver;
@@ -55,6 +57,8 @@ export interface BuildAppOptions {
   assessorRepository?: AssessorRepository;
   allocationRepository?: AllocationRepository;
   assessmentRepository?: AssessmentRepository;
+  communicationsRepository?: CommunicationsRepository;
+  resultsRepository?: ResultsRepository;
   auditLedger?: AuditLedger;
   productionLike?: boolean;
 }
@@ -86,6 +90,8 @@ export function buildApp(options: BuildAppOptions = {}) {
   const assessorRepository = options.assessorRepository;
   const allocationRepository = options.allocationRepository;
   const assessmentRepository = options.assessmentRepository;
+  const communicationsRepository = options.communicationsRepository;
+  const resultsRepository = options.resultsRepository;
 
   if (options.productionLike) {
     if (registrationStore && !registrationRepository) {
@@ -102,6 +108,12 @@ export function buildApp(options: BuildAppOptions = {}) {
     }
     if (assessmentStore && !assessmentRepository) {
       throw new Error("Production/staging assessment command routes require a DB-first assessment repository.");
+    }
+    if (communicationsStore && !communicationsRepository) {
+      throw new Error("Production/staging communications/message routes require a DB-first communications repository.");
+    }
+    if (resultsStore && !resultsRepository) {
+      throw new Error("Production/staging results/decision/publication routes require a DB-first results repository.");
     }
   }
 
@@ -180,21 +192,23 @@ export function buildApp(options: BuildAppOptions = {}) {
     });
   }
 
-  if (resultsStore && assessmentStore && applicantStore) {
+  if ((resultsStore && assessmentStore && applicantStore) || resultsRepository) {
     registerResultsRoutes(app, {
       resolveSession,
-      resultsStore,
-      assessmentStore,
-      applicantStore,
+      ...(resultsStore ? { resultsStore } : {}),
+      ...(assessmentStore ? { assessmentStore } : {}),
+      ...(applicantStore ? { applicantStore } : {}),
+      ...(resultsRepository ? { repository: resultsRepository } : {}),
       ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
     });
   }
 
-  if (communicationsStore && applicantStore) {
+  if ((communicationsStore && applicantStore) || communicationsRepository) {
     registerCommunicationsRoutes(app, {
       resolveSession,
-      communicationsStore,
-      applicantStore,
+      ...(communicationsStore ? { communicationsStore } : {}),
+      ...(applicantStore ? { applicantStore } : {}),
+      ...(communicationsRepository ? { repository: communicationsRepository } : {}),
       ...(options.auditLedger ? { auditLedger: options.auditLedger } : {})
     });
   }

@@ -17,6 +17,7 @@ import {
   paymentDeadlineCheckResponseSchema,
   paymentSummaryResponseSchema,
   previousFeedbackResponseDraftSchema,
+  signedDocumentAccessResponseSchema,
   type ApplicationStatus
 } from "@green-flag/contracts";
 import { requirePaymentResourceAccess } from "../authorization.js";
@@ -26,6 +27,8 @@ import { type ResourceOwnership } from "../authorization.js";
 import { buildAuditEvent, requestMetadata } from "../applicant/audit.js";
 import { sectionCompletion } from "../applicant/application.service.js";
 import { chunkProgress } from "../applicant/documents.service.js";
+import { DocumentMigrationValidationService } from "../document-migration-validation.js";
+import { PostgresDocumentMigrationRepository } from "./document-migration-repository.js";
 import { flushAdminOverrideEvents } from "./overrides.js";
 import { safeDisplayStatus } from "./shared.js";
 
@@ -100,6 +103,8 @@ type InvoiceRow = {
   amount_marker: string;
   due_at: Date | string;
   available_in_portal: boolean;
+  total_amount: string | null;
+  currency: string | null;
 };
 
 type PaymentRow = {
@@ -123,6 +128,51 @@ function paymentPurchaseOrder(row: PaymentRow) {
   };
 }
 
+type FinanceApplicationContext = {
+  application_id: string;
+  assessment_episode_id: string;
+  park_id: string;
+  park_name: string;
+  organisation_id: string;
+  organisation_name: string;
+  country_code: string | null;
+  award_track_code: string;
+  operational_year: number;
+};
+
+type ApplicationAreaSnapshotRow = {
+  id: string;
+  area_hectares: string;
+  source_kind: string;
+};
+
+type FeeScheduleLineRow = {
+  id: string;
+  description: string;
+  unit_amount: string;
+  currency: string;
+  currency_precision: number;
+  tax_name: string | null;
+  tax_rate: string;
+  tax_inclusive: boolean;
+  schedule_id: string;
+  schedule_key: string;
+  schedule_version: number;
+  configuration_source: string;
+};
+
+function moneyCents(value: string | number | null | undefined) {
+  return Math.round(Number(value ?? 0) * 100);
+}
+
+function moneyString(cents: number) {
+  return (cents / 100).toFixed(2);
+}
+
+function lowerEnvInvoiceNumber(invoiceId: string) {
+  return `LOWER-ENV-INVOICE-${invoiceId.replace(/-/g, "")}`;
+}
+
 function calculateApplicationStatus(sections: Array<{ completionPercent: number }>) {
   const completionPercent = Math.round(
     sections.reduce((sum, section) => sum + section.completionPercent, 0) / sections.length
@@ -130,6 +180,10 @@ function calculateApplicationStatus(sections: Array<{ completionPercent: number 
   const status: ApplicationStatus =
     completionPercent >= 100 ? "READY_TO_SUBMIT" : completionPercent > 0 ? "IN_PROGRESS" : "DRAFT";
   return { completionPercent, status };
+}
+
+function isUniqueViolation(error: unknown) {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "23505";
 }
 
 function documentFromRow(row: DocumentRow) {
@@ -153,6 +207,26 @@ function documentFromRow(row: DocumentRow) {
     ...(row.replaced_by_document_id ? { replacedByDocumentId: row.replaced_by_document_id } : {}),
     uploadedByActorId: row.uploaded_by_actor_id,
     scanStatus: row.scan_status,
+    createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at)
+  });
+}
+
+function applicantDocumentFromRow(row: DocumentRow) {
+  return completeDocumentUploadResponseSchema.shape.document.parse({
+    documentId: row.id,
+    documentType: row.document_type,
+    filename: row.filename,
+    contentType: row.content_type,
+    byteSize: row.byte_size,
+    status: row.status,
+    visibility: row.visibility,
+    version: row.version,
+    isCurrent: row.is_current,
+    ...(row.replaces_document_id ? { replacesDocumentId: row.replaces_document_id } : {}),
+    ...(row.replaced_by_document_id ? { replacedByDocumentId: row.replaced_by_document_id } : {}),
+    scanStatus: row.scan_status,
+    signedAccessAvailable: row.visibility !== "ADMIN_ONLY" && row.visibility !== "MYSTERY_RESTRICTED",
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at)
   });
@@ -240,7 +314,7 @@ async function loadDocuments(client: SqlClient, applicationId: string) {
     "SELECT * FROM document_assets WHERE application_id = $1 ORDER BY document_type, version DESC, created_at DESC",
     [applicationId]
   );
-  return rows.rows.map(documentFromRow);
+  return rows.rows.map(applicantDocumentFromRow);
 }
 
 async function loadUploadSession(client: SqlClient, sessionId: string, lock = false) {
@@ -277,10 +351,42 @@ async function loadUploadSession(client: SqlClient, sessionId: string, lock = fa
   });
 }
 
+async function loadUploadSessionByIdempotencyKey(client: SqlClient, applicationId: string, idempotencyKey: string, lock = false) {
+  const result = await client.query<UploadSessionRow>(
+    `
+      SELECT * FROM document_upload_sessions
+      WHERE application_id = $1 AND idempotency_key = $2
+      ${lock ? "FOR UPDATE" : ""}
+      LIMIT 1
+    `,
+    [applicationId, idempotencyKey]
+  );
+  const row = result.rows[0];
+  return row ? loadUploadSession(client, row.id) : null;
+}
+
+function assertUploadReplayMatches(
+  session: unknown,
+  body: Parameters<ApplicantRepository["createUploadSession"]>[0]["body"]
+) {
+  const replay = documentUploadSessionSchema.parse(session);
+  const mismatched =
+    replay.documentType !== body.documentType ||
+    replay.filename !== body.filename ||
+    replay.contentType !== body.contentType ||
+    replay.byteSize !== body.byteSize ||
+    replay.sha256 !== body.sha256 ||
+    replay.totalChunks !== body.totalChunks;
+  if (mismatched) {
+    throw new ApiError("idempotency_conflict", 409, "Upload session idempotency key was reused with different upload metadata.");
+  }
+  return replay;
+}
+
 async function loadInvoice(client: SqlClient, invoiceId: string, lock = false) {
   const result = await client.query<InvoiceRow>(
     `
-      SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal
+      SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal, total_amount::text, currency
       FROM invoices
       WHERE id = $1
       ${lock ? "FOR UPDATE" : ""}
@@ -292,7 +398,7 @@ async function loadInvoice(client: SqlClient, invoiceId: string, lock = false) {
 
 async function loadInvoiceByApplication(client: SqlClient, applicationId: string) {
   const result = await client.query<InvoiceRow>(
-    "SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal FROM invoices WHERE application_id = $1 LIMIT 1",
+    "SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal, total_amount::text, currency FROM invoices WHERE application_id = $1 LIMIT 1",
     [applicationId]
   );
   return result.rows[0] ?? null;
@@ -336,6 +442,248 @@ async function loadPaymentSummary(client: SqlClient, invoiceRow: InvoiceRow) {
   });
 }
 
+async function loadFinanceApplicationContext(client: SqlClient, applicationId: string) {
+  const row = (await client.query<FinanceApplicationContext>(
+    `
+      SELECT
+        a.id AS application_id,
+        a.assessment_episode_id,
+        a.park_id,
+        p.name AS park_name,
+        p.organisation_id,
+        o.name AS organisation_name,
+        ac.country_code,
+        ae.award_track_code,
+        ae.operational_year
+      FROM applications a
+      JOIN assessment_episodes ae ON ae.id = a.assessment_episode_id
+      JOIN award_cycles ac ON ac.id = ae.award_cycle_id
+      JOIN parks p ON p.id = a.park_id
+      JOIN organisations o ON o.id = p.organisation_id
+      WHERE a.id = $1
+      LIMIT 1
+    `,
+    [applicationId]
+  )).rows[0];
+  if (!row) throw new ApiError("dependency_missing", 404, "Application finance context was not found.");
+  return row;
+}
+
+async function ensureApplicationAreaSnapshot(client: SqlClient, applicationId: string) {
+  const existing = (await client.query<ApplicationAreaSnapshotRow>(
+    "SELECT id, area_hectares::text, source_kind FROM application_area_snapshots WHERE application_id = $1 LIMIT 1",
+    [applicationId]
+  )).rows[0];
+  if (existing) return existing;
+
+  const current = (await client.query<{
+    application_id: string;
+    assessment_episode_id: string;
+    park_id: string;
+    park_area_measurement_id: string;
+    area_hectares: string;
+    source_kind: string;
+    captured_at_utc: Date | string;
+  }>(
+    `
+      SELECT
+        a.id AS application_id,
+        a.assessment_episode_id,
+        a.park_id,
+        pam.id AS park_area_measurement_id,
+        pam.area_hectares::text,
+        pam.source_kind,
+        pam.captured_at_utc
+      FROM applications a
+      JOIN LATERAL (
+        SELECT *
+        FROM park_area_measurements
+        WHERE park_id = a.park_id
+          AND is_current = true
+        ORDER BY captured_at_utc DESC, id
+        LIMIT 1
+      ) pam ON true
+      WHERE a.id = $1
+      FOR UPDATE OF a
+    `,
+    [applicationId]
+  )).rows[0];
+
+  if (!current) {
+    throw new ApiError(
+      "dependency_missing",
+      409,
+      "Application area snapshot cannot be created because the park has no current area measurement."
+    );
+  }
+
+  const snapshotId = randomUUID();
+  await client.query(
+    `
+      INSERT INTO application_area_snapshots (
+        id,
+        application_id,
+        assessment_episode_id,
+        park_id,
+        park_area_measurement_id,
+        area_hectares,
+        source_kind,
+        snapshot_reason,
+        captured_at_utc
+      )
+      VALUES ($1, $2, $3, $4, $5, $6::numeric, $7, 'application_submission', $8::timestamptz)
+      ON CONFLICT (application_id) DO NOTHING
+    `,
+    [
+      snapshotId,
+      current.application_id,
+      current.assessment_episode_id,
+      current.park_id,
+      current.park_area_measurement_id,
+      current.area_hectares,
+      current.source_kind,
+      iso(current.captured_at_utc)
+    ]
+  );
+
+  return (await client.query<ApplicationAreaSnapshotRow>(
+    "SELECT id, area_hectares::text, source_kind FROM application_area_snapshots WHERE application_id = $1 LIMIT 1",
+    [applicationId]
+  )).rows[0]!;
+}
+
+async function selectFeeScheduleLine(client: SqlClient, context: FinanceApplicationContext, areaSnapshot: ApplicationAreaSnapshotRow, invoiceDate: string) {
+  const row = (await client.query<FeeScheduleLineRow>(
+    `
+      SELECT
+        fsl.id,
+        fsl.description,
+        fsl.unit_amount::text,
+        fsl.currency,
+        fsl.currency_precision,
+        fsl.tax_name,
+        fsl.tax_rate::text,
+        fsl.tax_inclusive,
+        fs.id AS schedule_id,
+        fs.schedule_key,
+        fs.version AS schedule_version,
+        fs.configuration_source
+      FROM fee_schedule_lines fsl
+      JOIN fee_schedules fs ON fs.id = fsl.fee_schedule_id
+      WHERE fs.status = 'active'
+        AND fsl.status = 'active'
+        AND fs.effective_from <= $1::date
+        AND (fs.effective_to IS NULL OR fs.effective_to > $1::date)
+        AND (fs.country_code IS NULL OR fs.country_code = $2)
+        AND (fsl.country_code IS NULL OR fsl.country_code = $2)
+        AND (fs.award_track_code IS NULL OR fs.award_track_code = $3)
+        AND (fsl.award_track_code IS NULL OR fsl.award_track_code = $3)
+        AND (fsl.min_area_hectares IS NULL OR fsl.min_area_hectares <= $4::numeric)
+        AND (fsl.max_area_hectares IS NULL OR fsl.max_area_hectares > $4::numeric)
+      ORDER BY
+        CASE fs.configuration_source
+          WHEN 'kbt_finance_approved' THEN 0
+          WHEN 'legacy_import' THEN 1
+          ELSE 2
+        END,
+        CASE WHEN fs.country_code = $2 THEN 0 ELSE 1 END,
+        CASE WHEN fsl.country_code = $2 THEN 0 ELSE 1 END,
+        CASE WHEN fsl.min_area_hectares IS NOT NULL THEN 0 ELSE 1 END,
+        fs.effective_from DESC,
+        fs.version DESC,
+        fsl.line_code
+      LIMIT 1
+    `,
+    [invoiceDate.slice(0, 10), context.country_code, context.award_track_code, areaSnapshot.area_hectares]
+  )).rows[0];
+
+  if (!row) {
+    throw new ApiError("dependency_missing", 409, "No active fee schedule line was available for invoice generation.");
+  }
+  if (row.tax_inclusive) {
+    throw new ApiError("validation_failed", 409, "Tax-inclusive fee treatment requires approved finance configuration before invoice generation.");
+  }
+  return row;
+}
+
+function invoiceLineAmounts(line: FeeScheduleLineRow) {
+  const quantity = 1;
+  const unitCents = moneyCents(line.unit_amount);
+  const lineSubtotalCents = Math.round(quantity * unitCents);
+  const taxCents = Math.round(lineSubtotalCents * (Number(line.tax_rate) / 100));
+  const lineTotalCents = lineSubtotalCents + taxCents;
+  return {
+    quantity: "1.0000",
+    unitAmount: moneyString(unitCents),
+    subtotalAmount: moneyString(lineSubtotalCents),
+    taxAmount: moneyString(taxCents),
+    totalAmount: moneyString(lineTotalCents)
+  };
+}
+
+async function appendPaymentEvent(client: SqlClient, input: {
+  invoice: InvoiceRow;
+  eventType: string;
+  eventStatus?: string;
+  source: string;
+  paymentMethod?: string;
+  actorId?: string;
+  auditEventId?: string;
+  adminOverrideEventId?: string;
+  notes?: string;
+  occurredAt?: string;
+}) {
+  await client.query(
+    `
+      INSERT INTO payment_events (
+        id,
+        invoice_id,
+        event_type,
+        event_status,
+        amount,
+        currency,
+        payment_method,
+        source,
+        actor_id,
+        occurred_at_utc,
+        audit_event_id,
+        admin_override_event_id,
+        notes
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5::numeric,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10::timestamptz,
+        $11,
+        $12,
+        $13
+      )
+    `,
+    [
+      randomUUID(),
+      input.invoice.id,
+      input.eventType,
+      input.eventStatus ?? "accepted",
+      input.invoice.total_amount ?? null,
+      input.invoice.currency ?? null,
+      input.paymentMethod ?? null,
+      input.source,
+      input.actorId ?? null,
+      input.occurredAt ?? new Date().toISOString(),
+      input.auditEventId ?? null,
+      input.adminOverrideEventId ?? null,
+      input.notes ?? null
+    ]
+  );
+}
+
 async function documentState(client: SqlClient, applicationId: string) {
   const result = await client.query<{ count: string }>(
     `
@@ -362,6 +710,7 @@ export interface ApplicantRepository {
   acknowledgeChunk(input: { applicationId: string; sessionId: string; chunkIndex: number; clientVersion: number; chunkSize: number; chunkChecksum: string; actor: SessionProfile["actor"]; request: FastifyRequest; idempotencyKey?: string | undefined }): Promise<unknown>;
   completeUpload(input: { applicationId: string; sessionId: string; clientVersion: number; sha256: string; byteSize: number; storageKey: string; actor: SessionProfile["actor"]; request: FastifyRequest }): Promise<unknown>;
   getDocument(input: { applicationId: string; documentId: string }): Promise<unknown>;
+  requestSignedDocumentAccess(input: { applicationId: string; documentId: string; actor: SessionProfile["actor"]; request: FastifyRequest }): Promise<unknown>;
   listDocumentVersions(input: { applicationId: string; documentId: string }): Promise<unknown>;
   submitApplication(input: { applicationId: string; clientVersion: number; purchaseOrder: unknown; actor: SessionProfile["actor"]; request: FastifyRequest; idempotencyKey?: string | undefined }): Promise<unknown>;
   getSubmission(applicationId: string): Promise<unknown>;
@@ -373,11 +722,18 @@ export interface ApplicantRepository {
 }
 
 export class PostgresApplicantRepository implements ApplicantRepository {
+  private readonly documentMigrationValidationService: DocumentMigrationValidationService;
+
   constructor(
     private readonly client: SqlClient,
     private readonly unitOfWork: UnitOfWork,
     private readonly auditLedger: AuditLedger
-  ) {}
+  ) {
+    this.documentMigrationValidationService = new DocumentMigrationValidationService(
+      new PostgresDocumentMigrationRepository(client, unitOfWork),
+      { auditLedger }
+    );
+  }
 
   async getOwnershipForPark(parkId: string): Promise<ResourceOwnership> {
     const result = await this.client.query<{
@@ -621,6 +977,10 @@ export class PostgresApplicantRepository implements ApplicantRepository {
     return this.unitOfWork.run(async ({ client }) => {
       const application = await loadApplication(client, applicationId, true);
       if (!application) throw new ApiError("dependency_missing", 404, "Application draft was not found.");
+      if (body.idempotencyKey) {
+        const replay = await loadUploadSessionByIdempotencyKey(client, applicationId, body.idempotencyKey, true);
+        if (replay) return assertUploadReplayMatches(replay, body);
+      }
       const existing = await client.query<UploadSessionRow>(
         `
           SELECT * FROM document_upload_sessions
@@ -637,27 +997,41 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       }
       const sessionId = randomUUID();
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-      await client.query(
-        `
-          INSERT INTO document_upload_sessions (
-            id, application_id, document_type, filename, content_type, byte_size, sha256,
-            total_chunks, status, idempotency_key, expires_at, version
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'CREATED', $9, $10::timestamptz, 0)
-        `,
-        [
-          sessionId,
-          applicationId,
-          body.documentType,
-          body.filename,
-          body.contentType,
-          body.byteSize,
-          body.sha256,
-          body.totalChunks,
-          body.idempotencyKey ?? null,
-          expiresAt
-        ]
-      );
+      try {
+        const inserted = await client.query<{ id: string }>(
+          `
+            INSERT INTO document_upload_sessions (
+              id, application_id, document_type, filename, content_type, byte_size, sha256,
+              total_chunks, status, idempotency_key, expires_at, version
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'CREATED', $9, $10::timestamptz, 0)
+            ON CONFLICT (application_id, idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
+            RETURNING id
+          `,
+          [
+            sessionId,
+            applicationId,
+            body.documentType,
+            body.filename,
+            body.contentType,
+            body.byteSize,
+            body.sha256,
+            body.totalChunks,
+            body.idempotencyKey ?? null,
+            expiresAt
+          ]
+        );
+        if (!inserted.rows[0] && body.idempotencyKey) {
+          const replay = await loadUploadSessionByIdempotencyKey(client, applicationId, body.idempotencyKey, true);
+          if (replay) return assertUploadReplayMatches(replay, body);
+        }
+      } catch (error) {
+        if (body.idempotencyKey && isUniqueViolation(error)) {
+          const replay = await loadUploadSessionByIdempotencyKey(client, applicationId, body.idempotencyKey, true);
+          if (replay) return assertUploadReplayMatches(replay, body);
+        }
+        throw error;
+      }
       await appendAuditEvent(
         this.auditLedger,
         buildAuditEvent({
@@ -775,7 +1149,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
         );
         return completeDocumentUploadResponseSchema.parse({
           applicationId,
-          document,
+          document: applicantDocumentFromRow(duplicate.rows[0]),
           duplicateOfDocumentId: document.documentId
         });
       }
@@ -791,12 +1165,6 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       const previous = previousCurrent.rows[0];
       const documentId = randomUUID();
       const version = previous ? previous.version + 1 : 1;
-      if (previous) {
-        await client.query(
-          "UPDATE document_assets SET is_current = false, status = 'ARCHIVED', replaced_by_document_id = $2, updated_at = now() WHERE id = $1",
-          [previous.id, documentId]
-        );
-      }
       await client.query(
         `
           INSERT INTO document_assets (
@@ -804,7 +1172,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
             byte_size, sha256, storage_provider, storage_key, status, visibility, version, is_current,
             replaces_document_id, uploaded_by_actor_id, scan_status
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'lower_env_stub', $10, 'AVAILABLE', 'APPLICANT_AND_ADMIN', $11, true, $12, $13, 'clean_stub')
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'lower_env_stub', $10, 'AVAILABLE', 'APPLICANT_AND_ADMIN', $11, $12, $13, $14, 'clean_stub')
         `,
         [
           documentId,
@@ -818,10 +1186,38 @@ export class PostgresApplicantRepository implements ApplicantRepository {
           uploadSession.sha256,
           storageKey,
           version,
+          previous ? false : true,
           previous?.id ?? null,
           actor.actorId
         ]
       );
+      if (previous) {
+        await client.query(
+          "UPDATE document_assets SET is_current = false, status = 'ARCHIVED', replaced_by_document_id = $2, updated_at = now() WHERE id = $1",
+          [previous.id, documentId]
+        );
+        await client.query("UPDATE document_assets SET is_current = true WHERE id = $1", [documentId]);
+      }
+      if (uploadSession.documentType === "management_plan") {
+        await this.documentMigrationValidationService.registerDocumentAssetOwnership(
+          {
+            documentAssetId: documentId,
+            documentSubtype: "management_plan",
+            ownerType: "application",
+            ownerId: applicationId,
+            ownerContextRole: "application_package",
+            sourceOrigin: "user_upload",
+            importStatus: "user_uploaded",
+            applyDocumentAssetMetadata: true,
+            createdByProcess: "management_plan_upload_metadata_enrichment"
+          },
+          {
+            actor,
+            requestId: request.id,
+            reason: "management_plan_upload_metadata_enrichment"
+          }
+        );
+      }
       await client.query("UPDATE document_upload_sessions SET status = 'COMPLETED', version = version + 1, updated_at = now() WHERE id = $1", [
         sessionId
       ]);
@@ -847,7 +1243,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       );
       return completeDocumentUploadResponseSchema.parse({
         applicationId,
-        document,
+        document: applicantDocumentFromRow(createdRow.rows[0]!),
         archivedDocumentId: previous?.id
       });
     });
@@ -862,6 +1258,49 @@ export class PostgresApplicantRepository implements ApplicantRepository {
     return documentFromRow(rows.rows[0]);
   }
 
+  async requestSignedDocumentAccess({ applicationId, documentId, actor, request }: Parameters<ApplicantRepository["requestSignedDocumentAccess"]>[0]) {
+    return this.unitOfWork.run(async ({ client }) => {
+      const rows = await client.query<DocumentRow>("SELECT * FROM document_assets WHERE id = $1 AND application_id = $2", [
+        documentId,
+        applicationId
+      ]);
+      const row = rows.rows[0];
+      if (!row) throw new ApiError("dependency_missing", 404, "Document was not found.");
+      if (row.visibility === "MYSTERY_RESTRICTED" || row.visibility === "ADMIN_ONLY") {
+        throw new ApiError("forbidden", 403, "Document is not visible to the applicant.");
+      }
+      const response = signedDocumentAccessResponseSchema.parse({
+        documentId: row.id,
+        method: "GET",
+        url: `https://lower-env-storage.invalid/download/${row.id}`,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        filename: row.filename,
+        contentType: row.content_type,
+        visibility: row.visibility
+      });
+      await appendAuditEvent(
+        this.auditLedger,
+        buildAuditEvent({
+          action: "DOCUMENT_ACCESS_REQUESTED",
+          entityType: "document",
+          entityId: row.id,
+          actor,
+          request: requestMetadata(request),
+          afterState: {
+            applicationId: row.application_id,
+            documentId: row.id,
+            episodeId: row.assessment_episode_id,
+            parkId: row.park_id,
+            documentType: row.document_type,
+            visibility: row.visibility,
+            accessDecision: "signed_access_issued"
+          }
+        })
+      );
+      return response;
+    });
+  }
+
   async listDocumentVersions({ applicationId, documentId }: Parameters<ApplicantRepository["listDocumentVersions"]>[0]) {
     const document = await this.getDocument({ applicationId, documentId }) as ReturnType<typeof documentAssetSchema.parse>;
     const versions = await this.client.query<DocumentRow>(
@@ -871,7 +1310,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
     return documentVersionsResponseSchema.parse({
       applicationId,
       documentType: document.documentType,
-      versions: versions.rows.map(documentFromRow)
+      versions: versions.rows.map(applicantDocumentFromRow)
     });
   }
 
@@ -894,6 +1333,13 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       const version = application.version + 1;
       const updatedAt = new Date().toISOString();
       const invoiceId = existingInvoice?.id ?? randomUUID();
+      const financeContext = await loadFinanceApplicationContext(client, applicationId);
+      const areaSnapshot = await ensureApplicationAreaSnapshot(client, applicationId);
+      const feeLine = await selectFeeScheduleLine(client, financeContext, areaSnapshot, updatedAt);
+      const lineAmounts = invoiceLineAmounts(feeLine);
+      const dueAt = new Date(Date.parse(updatedAt) + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const poNumber = (purchaseOrder as { purchaseOrderNumber?: string }).purchaseOrderNumber ?? null;
+      const noPurchaseOrderDeclared = (purchaseOrder as { noPurchaseOrderDeclared?: boolean }).noPurchaseOrderDeclared ?? false;
       await client.query(
         "UPDATE applications SET status = $2, version = $3, updated_at_utc = $4::timestamptz WHERE id = $1 AND version = $5",
         [applicationId, status, version, updatedAt, clientVersion]
@@ -911,11 +1357,168 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       );
       await client.query(
         `
-          INSERT INTO invoices (id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal)
-          VALUES ($1, $2, $3, 'PENDING', 'external_value_unavailable', $4::timestamptz, true)
+          INSERT INTO invoices (
+            id,
+            application_id,
+            assessment_episode_id,
+            status,
+            amount_marker,
+            due_at,
+            available_in_portal,
+            invoice_number,
+            invoice_number_scope,
+            invoice_number_policy_snapshot,
+            park_id,
+            organisation_id,
+            park_name_snapshot,
+            organisation_name_snapshot,
+            billing_name,
+            purchase_order_number_snapshot,
+            no_purchase_order_declared_snapshot,
+            currency,
+            currency_precision,
+            subtotal_amount,
+            tax_amount,
+            total_amount,
+            tax_name,
+            tax_rate,
+            payment_terms_snapshot,
+            due_date_source,
+            generated_at_utc,
+            source_reference_metadata
+          )
+          VALUES (
+            $1,
+            $2,
+            $3,
+            'PENDING',
+            'external_value_unavailable',
+            $4::timestamptz,
+            true,
+            $5,
+            'lower_env_placeholder',
+            $6::jsonb,
+            $7,
+            $8,
+            $9,
+            $10,
+            $11,
+            $12,
+            $13,
+            $14,
+            $15,
+            $16::numeric,
+            $17::numeric,
+            $18::numeric,
+            $19,
+            $20::numeric,
+            $21::jsonb,
+            'lower_env_placeholder',
+            $22::timestamptz,
+            $23::jsonb
+          )
           ON CONFLICT (application_id) DO UPDATE SET status = EXCLUDED.status, updated_at = now()
         `,
-        [invoiceId, applicationId, application.episodeId, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()]
+        [
+          invoiceId,
+          applicationId,
+          application.episodeId,
+          dueAt,
+          lowerEnvInvoiceNumber(invoiceId),
+          JSON.stringify({ source: "lower_env_placeholder", idempotencyKey: idempotencyKey ?? null }),
+          financeContext.park_id,
+          financeContext.organisation_id,
+          financeContext.park_name,
+          financeContext.organisation_name,
+          financeContext.organisation_name,
+          poNumber,
+          noPurchaseOrderDeclared,
+          feeLine.currency,
+          feeLine.currency_precision,
+          lineAmounts.subtotalAmount,
+          lineAmounts.taxAmount,
+          lineAmounts.totalAmount,
+          feeLine.tax_name,
+          feeLine.tax_rate,
+          JSON.stringify({
+            source: "lower_env_placeholder",
+            deadlineSource: "manual_offline_placeholder",
+            days: 30,
+            dueAt
+          }),
+          updatedAt,
+          JSON.stringify({
+            source: "application_submission",
+            feeScheduleId: feeLine.schedule_id,
+            feeScheduleKey: feeLine.schedule_key,
+            feeScheduleVersion: feeLine.schedule_version,
+            feeScheduleConfigurationSource: feeLine.configuration_source,
+            applicationAreaSnapshotId: areaSnapshot.id
+          })
+        ]
+      );
+      await client.query(
+        `
+          INSERT INTO invoice_lines (
+            id,
+            invoice_id,
+            line_number,
+            fee_schedule_line_id,
+            description,
+            quantity,
+            unit_amount,
+            currency,
+            currency_precision,
+            tax_name,
+            tax_rate,
+            tax_amount,
+            line_subtotal,
+            line_total,
+            application_area_snapshot_id,
+            source_reference_metadata
+          )
+          VALUES (
+            $1,
+            $2,
+            1,
+            $3,
+            $4,
+            $5::numeric,
+            $6::numeric,
+            $7,
+            $8,
+            $9,
+            $10::numeric,
+            $11::numeric,
+            $12::numeric,
+            $13::numeric,
+            $14,
+            $15::jsonb
+          )
+          ON CONFLICT (invoice_id, line_number) DO NOTHING
+        `,
+        [
+          randomUUID(),
+          invoiceId,
+          feeLine.id,
+          feeLine.description,
+          lineAmounts.quantity,
+          lineAmounts.unitAmount,
+          feeLine.currency,
+          feeLine.currency_precision,
+          feeLine.tax_name,
+          feeLine.tax_rate,
+          lineAmounts.taxAmount,
+          lineAmounts.subtotalAmount,
+          lineAmounts.totalAmount,
+          areaSnapshot.id,
+          JSON.stringify({
+            source: "fee_schedule_line",
+            feeScheduleLineId: feeLine.id,
+            applicationAreaSnapshotId: areaSnapshot.id,
+            rounding: { currencyPrecision: feeLine.currency_precision }
+          })
+        ]
       );
       await client.query(
         `
@@ -926,11 +1529,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
             no_purchase_order_declared = EXCLUDED.no_purchase_order_declared,
             updated_at = now()
         `,
-        [
-          invoiceId,
-          (purchaseOrder as { purchaseOrderNumber?: string }).purchaseOrderNumber ?? null,
-          (purchaseOrder as { noPurchaseOrderDeclared?: boolean }).noPurchaseOrderDeclared ?? false
-        ]
+        [invoiceId, poNumber, noPurchaseOrderDeclared]
       );
       for (const intent of ["application_submitted_email", "invoice_available_email"] as const) {
         await client.query(
@@ -1042,7 +1641,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       if (!application) throw new ApiError("dependency_missing", 404, "Application draft was not found.");
       requirePaymentResourceAccess({ actor } as SessionProfile, await this.getOwnershipForPark(application.parkId));
       await client.query("SELECT invoice_id FROM payment_states WHERE invoice_id = $1 FOR UPDATE", [invoiceId]);
-      await client.query("UPDATE invoices SET status = 'PAID', updated_at = now() WHERE id = $1", [invoiceId]);
+      await client.query("UPDATE invoices SET status = 'PAID', paid_at_utc = now(), updated_at = now() WHERE id = $1", [invoiceId]);
       await client.query("UPDATE assessment_episodes SET status = 'READY_FOR_ALLOCATION', updated_at_utc = now() WHERE id = $1", [
         invoice.assessment_episode_id
       ]);
@@ -1059,17 +1658,24 @@ export class PostgresApplicantRepository implements ApplicantRepository {
         `,
         [invoiceId, actor.actorId, reason]
       );
-      await appendAuditEvent(
-        this.auditLedger,
-        buildAuditEvent({
-          action: "MARK_PAYMENT_PAID_MANUALLY",
-          entityType: "invoice",
-          entityId: invoiceId,
-          actor,
-          request: requestMetadata(request, idempotencyKey),
-          afterState: { status: "PAID", episodeStatus: "READY_FOR_ALLOCATION", reason }
-        })
-      );
+      const audit = buildAuditEvent({
+        action: "MARK_PAYMENT_PAID_MANUALLY",
+        entityType: "invoice",
+        entityId: invoiceId,
+        actor,
+        request: requestMetadata(request, idempotencyKey),
+        afterState: { status: "PAID", episodeStatus: "READY_FOR_ALLOCATION", reason }
+      });
+      await appendAuditEvent(this.auditLedger, audit);
+      await appendPaymentEvent(client, {
+        invoice,
+        eventType: "manual_mark_paid",
+        source: "admin_action",
+        paymentMethod: "manual",
+        actorId: actor.actorId,
+        auditEventId: audit.id,
+        notes: reason
+      });
       const updatedInvoice = await loadInvoice(client, invoiceId);
       const updated = await loadPaymentSummary(client, updatedInvoice!);
       return {
@@ -1090,7 +1696,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
       if (!invoice) throw new ApiError("dependency_missing", 404, "Invoice was not found.");
       const paymentBefore = await loadPaymentSummary(client, invoice);
       await client.query("SELECT invoice_id FROM payment_states WHERE invoice_id = $1 FOR UPDATE", [invoiceId]);
-      await client.query("UPDATE invoices SET status = 'WAIVED', updated_at = now() WHERE id = $1", [invoiceId]);
+      await client.query("UPDATE invoices SET status = 'WAIVED', status_reason = $2, updated_at = now() WHERE id = $1", [invoiceId, reason]);
       await client.query("UPDATE assessment_episodes SET status = 'READY_FOR_ALLOCATION', updated_at_utc = now() WHERE id = $1", [
         invoice.assessment_episode_id
       ]);
@@ -1116,21 +1722,30 @@ export class PostgresApplicantRepository implements ApplicantRepository {
         afterState: { status: "WAIVED", episodeStatus: "READY_FOR_ALLOCATION", reason }
       });
       await appendAuditEvent(this.auditLedger, audit);
-      await flushAdminOverrideEvents(client, [
-        buildAdminOverrideEvent({
-          overrideType: "PAYMENT_BLOCK_OVERRIDE",
-          targetType: "invoice",
-          targetId: invoiceId,
-          authority: "SUPER_ADMIN",
-          reason,
-          actor,
-          priorState: { status: invoice.status, blockedForAllocation: paymentBefore.blockedForAllocation },
-          afterState: { status: "WAIVED", blockedForAllocation: false },
-          linkedAuditEventId: audit.id,
-          requestId: request.id,
-          ...(idempotencyKey ? { correlationId: idempotencyKey } : {})
-        })
-      ]);
+      const adminOverrideEvent = buildAdminOverrideEvent({
+        overrideType: "PAYMENT_BLOCK_OVERRIDE",
+        targetType: "invoice",
+        targetId: invoiceId,
+        authority: "SUPER_ADMIN",
+        reason,
+        actor,
+        priorState: { status: invoice.status, blockedForAllocation: paymentBefore.blockedForAllocation },
+        afterState: { status: "WAIVED", blockedForAllocation: false },
+        linkedAuditEventId: audit.id,
+        requestId: request.id,
+        ...(idempotencyKey ? { correlationId: idempotencyKey } : {})
+      });
+      await flushAdminOverrideEvents(client, [adminOverrideEvent]);
+      await appendPaymentEvent(client, {
+        invoice,
+        eventType: "payment_override",
+        source: "admin_action",
+        paymentMethod: "none",
+        actorId: actor.actorId,
+        auditEventId: audit.id,
+        adminOverrideEventId: adminOverrideEvent.id,
+        notes: reason
+      });
       const updatedInvoice = await loadInvoice(client, invoiceId);
       const updated = await loadPaymentSummary(client, updatedInvoice!);
       return {
@@ -1149,7 +1764,7 @@ export class PostgresApplicantRepository implements ApplicantRepository {
     return this.unitOfWork.run(async ({ client }) => {
       const due = await client.query<InvoiceRow>(
         `
-          SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal
+          SELECT id, application_id, assessment_episode_id, status, amount_marker, due_at, available_in_portal, total_amount::text, currency
           FROM invoices
           WHERE status = 'PENDING' AND due_at < $1::timestamptz
           ORDER BY due_at ASC
@@ -1169,17 +1784,24 @@ export class PostgresApplicantRepository implements ApplicantRepository {
           invoice.id,
           asOf
         ]);
-        await appendAuditEvent(
-          this.auditLedger,
-          buildAuditEvent({
-            action: "APPLY_PAYMENT_OVERDUE_BLOCK",
-            entityType: "invoice",
-            entityId: invoice.id,
-            actor,
-            request: requestMetadata(request, idempotencyKey),
-            afterState: { status: "OVERDUE_BLOCKED", episodeStatus: "PAYMENT_OVERDUE_BLOCKED", blockedForAllocation: true }
-          })
-        );
+        const audit = buildAuditEvent({
+          action: "APPLY_PAYMENT_OVERDUE_BLOCK",
+          entityType: "invoice",
+          entityId: invoice.id,
+          actor,
+          request: requestMetadata(request, idempotencyKey),
+          afterState: { status: "OVERDUE_BLOCKED", episodeStatus: "PAYMENT_OVERDUE_BLOCKED", blockedForAllocation: true }
+        });
+        await appendAuditEvent(this.auditLedger, audit);
+        await appendPaymentEvent(client, {
+          invoice,
+          eventType: "deadline_block_applied",
+          source: "system_job",
+          paymentMethod: "none",
+          actorId: actor.actorId,
+          auditEventId: audit.id,
+          occurredAt: asOf
+        });
         blockedInvoiceIds.push(invoice.id);
       }
       return paymentDeadlineCheckResponseSchema.parse({ checkedAt: asOf, blockedInvoiceIds });

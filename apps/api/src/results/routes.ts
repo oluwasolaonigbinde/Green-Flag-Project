@@ -13,11 +13,13 @@ import {
 import type { ApplicantStore } from "../applicant.js";
 import type { AssessmentStore } from "../assessment.js";
 import { appendAuditEvent, ApiError, type AuditEvent, type AuditLedger, type SessionResolver } from "../auth.js";
+import { requireMutationAllowed } from "../authorization.js";
 import { buildAuditEvent, defaultAuditLedger, requestMetadata } from "./audit.js";
 import { matchingAuditByIdempotency, summarizeAssessments } from "./commands.service.js";
 import { requireAdminForEpisode, requireApplicantForEpisode } from "./policies.js";
 import { assessmentsForEpisode, decisionForEpisode, safeDisplayLabel } from "./read-models.js";
 import type { AwardCacheEntry, DecisionResult, PublicMapUpdateEvent, ResultArtifact, ResultsStore } from "./store.js";
+import type { ResultsRepository } from "../postgres-domain-stores/results-repository.js";
 
 export function registerResultsRoutes(
   app: FastifyInstance,
@@ -26,16 +28,19 @@ export function registerResultsRoutes(
     resultsStore,
     assessmentStore,
     applicantStore,
+    repository,
     auditLedger = defaultAuditLedger
   }: {
     resolveSession: SessionResolver;
-    resultsStore: ResultsStore;
-    assessmentStore: AssessmentStore;
-    applicantStore: ApplicantStore;
+    resultsStore?: ResultsStore;
+    assessmentStore?: AssessmentStore;
+    applicantStore?: ApplicantStore;
+    repository?: ResultsRepository;
     auditLedger?: AuditLedger;
   }
 ) {
   async function audit(event: AuditEvent) {
+    if (!resultsStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     resultsStore.audits.push(await appendAuditEvent(auditLedger, event));
     return event.id;
   }
@@ -43,6 +48,8 @@ export function registerResultsRoutes(
   app.get("/api/v1/admin/results/:episodeId", async (request) => {
     const session = await resolveSession(request);
     const params = request.params as { episodeId: string };
+    if (repository) return repository.adminDetail({ episodeId: params.episodeId, session });
+    if (!resultsStore || !assessmentStore || !applicantStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     requireAdminForEpisode(session, applicantStore, params.episodeId);
     const decision = decisionForEpisode(resultsStore, params.episodeId);
     return adminResultDetailResponseSchema.parse({
@@ -59,6 +66,9 @@ export function registerResultsRoutes(
     const session = await resolveSession(request);
     const params = request.params as { episodeId: string };
     const input = holdDecisionRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.hold({ episodeId: params.episodeId, body: input, session, request });
+    if (!resultsStore || !assessmentStore || !applicantStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     const { application } = requireAdminForEpisode(session, applicantStore, params.episodeId);
     const existing = decisionForEpisode(resultsStore, params.episodeId);
     if (existing) {
@@ -106,6 +116,9 @@ export function registerResultsRoutes(
     const session = await resolveSession(request);
     const params = request.params as { decisionId: string };
     const input = publishDecisionRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.publish({ decisionId: params.decisionId, body: input, session, request });
+    if (!resultsStore || !applicantStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     const decision = resultsStore.decisions.get(params.decisionId);
     if (!decision) throw new ApiError("dependency_missing", 404, "Decision result was not found.");
     requireAdminForEpisode(session, applicantStore, decision.episodeId);
@@ -186,6 +199,9 @@ export function registerResultsRoutes(
     const session = await resolveSession(request);
     const params = request.params as { decisionId: string };
     const input = withdrawDecisionRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.withdraw({ decisionId: params.decisionId, body: input, session, request });
+    if (!resultsStore || !applicantStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     const decision = resultsStore.decisions.get(params.decisionId);
     if (!decision) throw new ApiError("dependency_missing", 404, "Decision result was not found.");
     requireAdminForEpisode(session, applicantStore, decision.episodeId);
@@ -223,6 +239,8 @@ export function registerResultsRoutes(
   app.get("/api/v1/applicant/results/:episodeId", async (request) => {
     const session = await resolveSession(request);
     const params = request.params as { episodeId: string };
+    if (repository) return repository.applicantResult({ episodeId: params.episodeId, session });
+    if (!resultsStore || !applicantStore) throw new ApiError("dependency_missing", 503, "Results store is not configured.");
     const { application } = requireApplicantForEpisode(session, applicantStore, params.episodeId);
     const decision = decisionForEpisode(resultsStore, params.episodeId);
     if (!decision) {
@@ -240,7 +258,7 @@ export function registerResultsRoutes(
       status: "published",
       displayLabel: safeDisplayLabel(decision),
       certificate: decision.certificateId
-        ? { certificateId: decision.certificateId, downloadAvailable: true, storageProvider: "lower_env_stub" }
+        ? { certificateId: decision.certificateId, downloadAvailable: true }
         : undefined
     });
   });

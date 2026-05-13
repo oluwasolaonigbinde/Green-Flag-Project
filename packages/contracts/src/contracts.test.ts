@@ -114,6 +114,9 @@ describe("foundation contracts", () => {
     expect(documentVersionsFixture.versions).toHaveLength(2);
     expect(JSON.stringify(applicationDocumentsFixture)).not.toContain("MYSTERY_SHOP");
     expect(JSON.stringify(applicationDocumentsFixture)).not.toContain("provider_credentials");
+    expect(JSON.stringify(applicationDocumentsFixture)).not.toContain("storageKey");
+    expect(JSON.stringify(completeDocumentUploadFixture)).not.toContain("storageProvider");
+    expect(JSON.stringify(documentVersionsFixture)).not.toContain("uploadedByActorId");
   });
 
   it("models submission, invoice, and manual payment contracts without production values", () => {

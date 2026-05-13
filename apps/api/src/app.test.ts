@@ -7,6 +7,8 @@ import { createRegistrationStore } from "./registration.js";
 import { createAllocationStore } from "./allocation.js";
 import { createAssessorStore } from "./assessor.js";
 import { createAssessmentStore } from "./assessment.js";
+import { createCommunicationsStore } from "./communications.js";
+import { createResultsStore } from "./results.js";
 
 describe("foundation api", () => {
   it("returns health", async () => {
@@ -106,5 +108,88 @@ describe("foundation api", () => {
         assessmentStore: createAssessmentStore()
       })
     ).toThrow("DB-first assessment repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        communicationsStore: createCommunicationsStore()
+      })
+    ).toThrow("DB-first communications repository");
+
+    expect(() =>
+      buildApp({
+        productionLike: true,
+        resultsStore: createResultsStore()
+      })
+    ).toThrow("DB-first results repository");
+  });
+
+  it("prefers communications repository over lower-env store transaction fallback when both are wired", async () => {
+    const communicationsStore = createCommunicationsStore();
+    communicationsStore.withTransaction = async () => {
+      throw new Error("store flush should not run");
+    };
+    const repository = {
+      async listNotificationQueue() { return { items: [], logs: [] }; },
+      async dispatchNotificationStub() { return {}; },
+      async listApplicantMessages() { return { threads: [], messages: [] }; },
+      async createThread() { return { ok: true }; },
+      async listAdminMessages() { return { threads: [], messages: [] }; },
+      async runRenewalReminders() { return { jobRun: {}, queuedNotifications: [] }; },
+      async listJobs() { return { items: [] }; },
+      async createExport() { return {}; },
+      async listExports() { return { items: [] }; }
+    };
+    const app = buildApp({
+      communicationsStore,
+      applicantStore: createApplicantStore(),
+      communicationsRepository: repository,
+      resolveSession: async () => globalAdminSessionFixture
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/messages",
+      payload: {
+        subject: "Repository path",
+        body: "Do not flush the communications store."
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ ok: true });
+  });
+
+  it("prefers results repository over lower-env store transaction fallback when both are wired", async () => {
+    const resultsStore = createResultsStore();
+    resultsStore.withTransaction = async () => {
+      throw new Error("store flush should not run");
+    };
+    const repository = {
+      async adminDetail() { return {}; },
+      async hold() { return { ok: true }; },
+      async publish() { return {}; },
+      async withdraw() { return {}; },
+      async applicantResult() { return {}; }
+    };
+    const app = buildApp({
+      resultsStore,
+      assessmentStore: createAssessmentStore(),
+      applicantStore: createApplicantStore(),
+      resultsRepository: repository,
+      resolveSession: async () => globalAdminSessionFixture
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/results/11111111-1111-4111-8111-111111111111/hold",
+      payload: {
+        thresholdAcknowledged: true,
+        idempotencyKey: "results-repository-path"
+      }
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ ok: true });
   });
 });

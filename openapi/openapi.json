@@ -2338,7 +2338,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageThreadsResponse"
+                  "$ref": "#/components/schemas/ApplicantMessageThreadsResponse"
                 }
               }
             }
@@ -2354,7 +2354,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageCommandResponse"
+                  "$ref": "#/components/schemas/ApplicantMessageCommandResponse"
                 }
               }
             }
@@ -3491,6 +3491,72 @@
           }
         }
       },
+      "ApplicantDocumentAsset": {
+        "type": "object",
+        "required": [
+          "documentId",
+          "documentType",
+          "filename",
+          "contentType",
+          "byteSize",
+          "status",
+          "visibility",
+          "version",
+          "isCurrent",
+          "scanStatus",
+          "signedAccessAvailable",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentType": {
+            "type": "string",
+            "enum": [
+              "management_plan",
+              "supporting_document"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "byteSize": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "isCurrent": {
+            "type": "boolean"
+          },
+          "scanStatus": {
+            "type": "string"
+          },
+          "signedAccessAvailable": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "DocumentUploadSession": {
         "type": "object",
         "properties": {
@@ -3573,7 +3639,7 @@
             "format": "uuid"
           },
           "document": {
-            "$ref": "#/components/schemas/DocumentAsset"
+            "$ref": "#/components/schemas/ApplicantDocumentAsset"
           },
           "duplicateOfDocumentId": {
             "type": "string",
@@ -3629,7 +3695,7 @@
           "versions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DocumentAsset"
+              "$ref": "#/components/schemas/ApplicantDocumentAsset"
             }
           }
         }
@@ -4306,6 +4372,14 @@
       },
       "MessageCommandResponse": {
         "type": "object"
+      },
+      "ApplicantMessageThreadsResponse": {
+        "type": "object",
+        "description": "Applicant-safe message projection without participant actor ids, sender actor ids, or visibility internals."
+      },
+      "ApplicantMessageCommandResponse": {
+        "type": "object",
+        "description": "Applicant-safe message command response without participant actor ids, sender actor ids, or visibility internals."
       },
       "RenewalReminderRunRequest": {
         "type": "object"

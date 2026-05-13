@@ -42,6 +42,11 @@ import { PostgresApplicantRepository } from "./postgres-domain-stores/applicant-
 import { PostgresAssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
 import { PostgresAllocationRepository } from "./postgres-domain-stores/allocation-repository.js";
 import { PostgresAssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
+import { PostgresCommunicationsRepository } from "./postgres-domain-stores/communications-repository.js";
+import { PostgresResultsRepository } from "./postgres-domain-stores/results-repository.js";
+import { PostgresDocumentMigrationRepository } from "./postgres-domain-stores/document-migration-repository.js";
+import { DocumentMigrationValidationService } from "./document-migration-validation.js";
+import { PostgresParkAreaService } from "./park-area.js";
 import { buildApp } from "./app.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
@@ -214,6 +219,21 @@ async function seedApplicantEpisode(pool: SqlPool) {
     `,
     [episodeId, parkId, snapshot.awardCycle.id, fullAssessmentWindowId, snapshot.awardTrack.code]
   );
+  await pool.query(
+    `
+      INSERT INTO park_area_measurements (
+        id,
+        park_id,
+        area_hectares,
+        source_kind,
+        source_label,
+        is_current,
+        captured_by_actor_id
+      )
+      VALUES ($1, $2, 12.50, 'applicant_confirmed', 'Synthetic lower-env applicant area', true, $3)
+    `,
+    [randomUUID(), parkId, globalAdminSessionFixture.actor.actorId]
+  );
   return { parkId, episodeId };
 }
 
@@ -316,6 +336,72 @@ async function seedAssessmentAssignment(
     [assignmentId, allocationId, episode.episodeId, assessor.profileId, status, status === "ACCEPTED" && episodeType === "FULL_ASSESSMENT"]
   );
   return { ...episode, ...assessor, allocationId, assignmentId };
+}
+
+async function seedSubmittedResultEpisode(
+  pool: SqlPool,
+  label: string,
+  episodeType: "FULL_ASSESSMENT" | "MYSTERY_SHOP" = "FULL_ASSESSMENT",
+  thresholdMet = true
+) {
+  const seeded = await seedAssessmentAssignment(pool, label, "ACCEPTED", episodeType);
+  const template = assessmentSubmittedFixture.assessment.template;
+  await pool.query(
+    `
+      INSERT INTO assessment_template_configs (
+        id, award_track_code, cycle_year, source, pass_threshold_percent, updated_at_utc
+      )
+      VALUES ($1, $2, $3, $4, $5, now())
+      ON CONFLICT (award_track_code, cycle_year) DO UPDATE SET updated_at_utc = now()
+    `,
+    [
+      template.templateId,
+      template.awardTrackCode,
+      template.cycleYear,
+      template.source,
+      template.passThresholdPercent
+    ]
+  );
+  for (const [index, criterion] of template.criteria.entries()) {
+    await pool.query(
+      `
+        INSERT INTO assessment_template_criteria (
+          template_config_id, criterion_id, code, label, max_score, placeholder_only, sort_order
+        )
+        VALUES ($1, $2, $3, $4, $5, true, $6)
+        ON CONFLICT (template_config_id, criterion_id) DO NOTHING
+      `,
+      [template.templateId, criterion.criterionId, criterion.code, criterion.label, criterion.maxScore, index]
+    );
+  }
+  const assessmentId = randomUUID();
+  await pool.query(
+    `
+      INSERT INTO judge_assessments (
+        id, judge_assignment_id, assessment_episode_id, assessor_profile_id, status,
+        raw_score_total, max_score_total, threshold_met, offline_sync_version, version, updated_at_utc
+      )
+      VALUES ($1, $2, $3, $4, 'SUBMITTED', $5, $6, $7, 0, 1, now())
+    `,
+    [
+      assessmentId,
+      seeded.assignmentId,
+      seeded.episodeId,
+      seeded.profileId,
+      thresholdMet ? 80 : 20,
+      100,
+      thresholdMet
+    ]
+  );
+  await pool.query(
+    `
+      INSERT INTO assessment_score_entries (assessment_id, criterion_id, score, notes, updated_at_utc)
+      VALUES ($1, $2, $3, NULL, now())
+      ON CONFLICT (assessment_id, criterion_id) DO UPDATE SET score = EXCLUDED.score, updated_at_utc = now()
+    `,
+    [assessmentId, template.criteria[0]!.criterionId, thresholdMet ? 80 : 20]
+  );
+  return { ...seeded, assessmentId };
 }
 
 run("Postgres domain store adapters", () => {
@@ -493,6 +579,160 @@ run("Postgres domain store adapters", () => {
     expect(rehydrated.communicationsStore.notifications.get(notificationQueueFixture.items[0]!.notificationId)?.status).toBe("QUEUED");
     expect(rehydrated.communicationsStore.messageThreads.get(messageThreadsFixture.threads[0]!.threadId)?.visibleToApplicant).toBe(true);
     expect(rehydrated.communicationsStore.exports.get(exportCommandFixture.exportJob.exportId)?.status).toBe("COMPLETED");
+  });
+
+  it("persists Goal 3B internal document ownerships and migration file references with safe replay", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const service = new DocumentMigrationValidationService(
+      new PostgresDocumentMigrationRepository(pool, unitOfWork),
+      { unitOfWork, auditLedger: ledger }
+    );
+    const seeded = await seedAllocationEpisode(pool);
+    const documentAssetId = randomUUID();
+    await pool.query(
+      `
+        INSERT INTO document_assets (
+          id, application_id, assessment_episode_id, park_id, document_type, filename, content_type,
+          byte_size, sha256, storage_provider, storage_key, status, visibility, version, is_current,
+          uploaded_by_actor_id, scan_status
+        )
+        VALUES (
+          $1, $2, $3, $4, 'management_plan', 'goal-3b-management-plan.pdf', 'application/pdf',
+          12345, $5, 'lower_env_stub', $6, 'ARCHIVED', 'APPLICANT_AND_ADMIN', 1, false,
+          $7, 'clean_stub'
+        )
+      `,
+      [
+        documentAssetId,
+        seeded.applicationId,
+        seeded.episodeId,
+        seeded.parkId,
+        "b".repeat(64),
+        `lower-env/applications/${documentAssetId}/goal-3b-management-plan.pdf`,
+        parkManagerRoleAssignmentFixture.internalUserId
+      ]
+    );
+
+    const ownership = await service.registerDocumentAssetOwnership({
+      documentAssetId,
+      documentSubtype: "management_plan",
+      ownerType: "application",
+      ownerId: seeded.applicationId,
+      ownerContextRole: "application_package",
+      applyDocumentAssetMetadata: true
+    }, { requestId: "goal-3b-db-ownership" });
+    expect(ownership).toMatchObject({
+      documentAssetId,
+      ownerType: "application",
+      ownerId: seeded.applicationId
+    });
+    const ownershipRows = await pool.query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM document_asset_ownerships WHERE document_asset_id = $1",
+      [documentAssetId]
+    );
+    expect(ownershipRows.rows[0]?.count).toBe("1");
+    const assetMetadata = await pool.query<{
+      document_subtype: string | null;
+      retention_category: string | null;
+      sensitivity_classification: string | null;
+      redaction_classification: string | null;
+      import_status: string | null;
+    }>(
+      `
+        SELECT document_subtype, retention_category, sensitivity_classification, redaction_classification, import_status
+        FROM document_assets
+        WHERE id = $1
+      `,
+      [documentAssetId]
+    );
+    expect(assetMetadata.rows[0]).toMatchObject({
+      document_subtype: "management_plan",
+      retention_category: "assessment_record_min_7_years",
+      sensitivity_classification: "low",
+      redaction_classification: "standard",
+      import_status: "validated_internal"
+    });
+
+    const importBatchId = randomUUID();
+    await pool.query(
+      `
+        INSERT INTO migration_import_batches (
+          id, batch_key, source_system, source_database, source_export_label,
+          environment, batch_kind, status, source_file_manifest
+        )
+        VALUES ($1, $2, 'legacy_greenflag_live', 'GreenFlag_Live', 'goal-3b-db-test', 'local', 'dry_run', 'created', '[]'::jsonb)
+      `,
+      [importBatchId, `goal-3b-${importBatchId}`]
+    );
+    const referenceInput = {
+      importBatchId,
+      sourceTable: "ParkDocument",
+      sourceColumn: "Filename",
+      sourcePrimaryKey: "legacy-document-1",
+      legacyFilename: "secret-mystery-visit-plan.pdf",
+      originalRelativePath: "legacy/private/secret-mystery-visit-plan.pdf",
+      resolvedStorageKey: "lower-env/private/secret-mystery-visit-plan.pdf",
+      externalArchiveLocation: "archive://private/secret-mystery-visit-plan.pdf",
+      importStatus: "metadata_only" as const,
+      ownerEntityType: "application",
+      ownerEntityId: seeded.applicationId,
+      documentSubtype: "management_plan"
+    };
+    const reference = await service.registerMigrationFileReference(referenceInput, { requestId: "goal-3b-db-reference" });
+    const replay = await service.registerMigrationFileReference(referenceInput, { requestId: "goal-3b-db-reference-replay" });
+    expect(replay.id).toBe(reference.id);
+    const referenceRows = await pool.query<{ count: string }>(
+      `
+        SELECT count(*)::text AS count
+        FROM migration_document_file_references
+        WHERE import_batch_id = $1 AND source_table = 'ParkDocument' AND source_column = 'Filename'
+      `,
+      [importBatchId]
+    );
+    expect(referenceRows.rows[0]?.count).toBe("1");
+    await expect(service.registerMigrationFileReference({
+      ...referenceInput,
+      sha256: "c".repeat(64)
+    }, { requestId: "goal-3b-db-reference-conflict" })).rejects.toMatchObject({
+      code: "idempotency_conflict",
+      message: expect.not.stringContaining("secret-mystery-visit-plan.pdf")
+    });
+
+    const assetCountBeforeArchiveOnly = await pool.query<{ count: string }>("SELECT count(*)::text AS count FROM document_assets");
+    const archiveOnly = await service.registerArchiveOnlyFileReference({
+      importBatchId,
+      sourceTable: "ParkDocument",
+      sourceColumn: "ArchiveFilename",
+      sourcePrimaryKey: "legacy-document-2",
+      sourceReferenceKey: "archive-only",
+      externalArchiveLocation: "archive://private/archive-only-document.pdf",
+      importStatus: "external_archive_only",
+      documentSubtype: "archive_only_file"
+    }, { requestId: "goal-3b-db-archive-only" });
+    expect(archiveOnly).toMatchObject({
+      importStatus: "external_archive_only",
+      documentSubtype: "archive_only_file"
+    });
+    const assetCountAfterArchiveOnly = await pool.query<{ count: string }>("SELECT count(*)::text AS count FROM document_assets");
+    expect(assetCountAfterArchiveOnly.rows[0]?.count).toBe(assetCountBeforeArchiveOnly.rows[0]?.count);
+
+    const auditRows = await pool.query<{ after_state: string }>(
+      `
+        SELECT after_state::text AS after_state
+        FROM audit_events
+        WHERE action IN ('REGISTER_DOCUMENT_ASSET_OWNERSHIP', 'REGISTER_DOCUMENT_MIGRATION_FILE_REFERENCE')
+          AND request_id LIKE 'goal-3b-db-%'
+        ORDER BY created_at_utc
+      `
+    );
+    const auditPayload = JSON.stringify(auditRows.rows);
+    expect(auditPayload).not.toContain("secret-mystery-visit-plan.pdf");
+    expect(auditPayload).not.toContain("legacy/private");
+    expect(auditPayload).not.toContain("lower-env/private");
+    expect(auditPayload).not.toContain("archive://private");
+    expect(auditPayload).toContain("hasLegacyFilename");
+    expect(auditPayload).toContain("hasExternalArchiveLocation");
   });
 
   it("rejects shared lower-env registration verification tokens unless explicitly enabled", async () => {
@@ -777,6 +1017,18 @@ run("Postgres domain store adapters", () => {
       }
     });
     expect(completed.statusCode).toBe(200);
+    expect(JSON.stringify(completed.json())).not.toContain("storageKey");
+
+    const signedAccess = await app.inject({
+      method: "GET",
+      url: `/api/v1/applicant/applications/${applicationId}/documents/${completed.json().document.documentId}/access`
+    });
+    expect(signedAccess.statusCode).toBe(200);
+    const accessAudit = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM audit_events WHERE entity_id = $1 AND action = 'DOCUMENT_ACCESS_REQUESTED'",
+      [completed.json().document.documentId]
+    );
+    expect(accessAudit.rows[0]?.count).toBe("1");
 
     const submitted = await app.inject({
       method: "POST",
@@ -788,6 +1040,99 @@ run("Postgres domain store adapters", () => {
       }
     });
     expect(submitted.statusCode).toBe(200);
+    const financeRows = await pool.query<{
+      invoice_number: string;
+      invoice_number_scope: string;
+      amount_marker: string;
+      currency: string;
+      subtotal_amount: string;
+      tax_amount: string;
+      total_amount: string;
+      tax_rate: string;
+      due_date_source: string;
+      payment_terms_snapshot: unknown;
+      billing_name: string;
+      park_name_snapshot: string;
+      organisation_name_snapshot: string;
+      line_total: string;
+      line_subtotal: string;
+      line_tax_amount: string;
+      application_area_snapshot_id: string;
+      area_hectares: string;
+    }>(
+      `
+        SELECT
+          i.invoice_number,
+          i.invoice_number_scope,
+          i.amount_marker,
+          i.currency,
+          i.subtotal_amount::text,
+          i.tax_amount::text,
+          i.total_amount::text,
+          i.tax_rate::text,
+          i.due_date_source,
+          i.payment_terms_snapshot,
+          i.billing_name,
+          i.park_name_snapshot,
+          i.organisation_name_snapshot,
+          il.line_total::text,
+          il.line_subtotal::text,
+          il.tax_amount::text AS line_tax_amount,
+          il.application_area_snapshot_id,
+          aas.area_hectares::text
+        FROM invoices i
+        JOIN invoice_lines il ON il.invoice_id = i.id
+        JOIN application_area_snapshots aas ON aas.id = il.application_area_snapshot_id
+        WHERE i.id = $1
+      `,
+      [submitted.json().invoice.invoiceId]
+    );
+    expect(financeRows.rows[0]).toMatchObject({
+      invoice_number_scope: "lower_env_placeholder",
+      amount_marker: "external_value_unavailable",
+      currency: "XXX",
+      subtotal_amount: "0.00",
+      tax_amount: "0.00",
+      total_amount: "0.00",
+      tax_rate: "0.0000",
+      due_date_source: "lower_env_placeholder",
+      billing_name: lowerEnvironmentParkCycleSnapshotFixture.organisation.name,
+      organisation_name_snapshot: lowerEnvironmentParkCycleSnapshotFixture.organisation.name,
+      line_total: "0.00",
+      line_subtotal: "0.00",
+      line_tax_amount: "0.00",
+      area_hectares: "12.50"
+    });
+    expect(financeRows.rows[0]?.invoice_number).toMatch(/^LOWER-ENV-INVOICE-/);
+    expect(JSON.stringify(financeRows.rows[0]?.payment_terms_snapshot)).toContain("lower_env_placeholder");
+
+    const areaService = new PostgresParkAreaService(pool, unitOfWork, ledger);
+    await areaService.overrideArea({
+      parkId: applicantEpisode.parkId,
+      areaHectares: 99,
+      reason: "Synthetic post-submission area correction.",
+      actor: globalAdminSessionFixture.actor,
+      request: { requestId: "goal2-post-submit-area-override", idempotencyKey: "goal2-post-submit-area-override" }
+    });
+    const frozenInvoiceRows = await pool.query<{ total_amount: string; application_area_snapshot_id: string; area_hectares: string }>(
+      `
+        SELECT i.total_amount::text, il.application_area_snapshot_id, aas.area_hectares::text
+        FROM invoices i
+        JOIN invoice_lines il ON il.invoice_id = i.id
+        JOIN application_area_snapshots aas ON aas.id = il.application_area_snapshot_id
+        WHERE i.id = $1
+      `,
+      [submitted.json().invoice.invoiceId]
+    );
+    expect(frozenInvoiceRows.rows[0]).toMatchObject({
+      total_amount: "0.00",
+      application_area_snapshot_id: financeRows.rows[0]?.application_area_snapshot_id,
+      area_hectares: "12.50"
+    });
+    await expect(pool.query(
+      "UPDATE invoice_lines SET description = description WHERE invoice_id = $1",
+      [submitted.json().invoice.invoiceId]
+    )).rejects.toThrow(/immutable/);
 
     const po = await app.inject({
       method: "PATCH",
@@ -852,6 +1197,27 @@ run("Postgres domain store adapters", () => {
       [submitted.json().invoice.invoiceId]
     );
     expect(overrideEvents.rows[0]?.count).toBe("1");
+    const paymentEvents = await pool.query<{ event_type: string; count: string; audit_count: string; override_count: string }>(
+      `
+        SELECT
+          event_type,
+          count(*)::text AS count,
+          count(audit_event_id)::text AS audit_count,
+          count(admin_override_event_id)::text AS override_count
+        FROM payment_events
+        WHERE invoice_id = $1
+        GROUP BY event_type
+      `,
+      [submitted.json().invoice.invoiceId]
+    );
+    const paymentEventCounts = new Map(paymentEvents.rows.map((row) => [row.event_type, row]));
+    expect(paymentEventCounts.get("deadline_block_applied")).toMatchObject({ count: "1", audit_count: "1" });
+    expect(paymentEventCounts.get("payment_override")).toMatchObject({ count: "1", audit_count: "1", override_count: "1" });
+    expect(paymentEventCounts.get("manual_mark_paid")).toMatchObject({ count: "1", audit_count: "1" });
+    await expect(pool.query(
+      "UPDATE payment_events SET notes = notes WHERE invoice_id = $1",
+      [submitted.json().invoice.invoiceId]
+    )).rejects.toThrow(/append-only/);
 
     app = buildApp({
       applicantStore: stores.applicantStore,
@@ -865,6 +1231,407 @@ run("Postgres domain store adapters", () => {
     });
     expect(payment.statusCode).toBe(200);
     expect(payment.json().purchaseOrder.purchaseOrderNumber).toBe("PO-DURABLE-001");
+  });
+
+  it("enriches only newly created management-plan upload assets with internal metadata", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const applicantRepository = new PostgresApplicantRepository(pool, unitOfWork, ledger);
+    const applicantEpisode = await seedApplicantEpisode(pool);
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: applicantEpisode.parkId }];
+    applicantSession.roleAssignments = [
+      {
+        ...applicantSession.roleAssignments[0]!,
+        scope: { type: "PARK", id: applicantEpisode.parkId }
+      }
+    ];
+    const stores = await createPostgresDomainStores({ client: pool, unitOfWork });
+    const app = buildApp({
+      applicantStore: stores.applicantStore,
+      applicantRepository,
+      resolveSession: async () => applicantSession,
+      auditLedger: ledger
+    });
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/applicant/applications",
+      payload: {
+        parkId: applicantEpisode.parkId,
+        episodeId: applicantEpisode.episodeId,
+        idempotencyKey: "goal3b1-create-application"
+      }
+    });
+    expect(created.statusCode).toBe(201);
+    const applicationId = created.json().applicationId;
+
+    const expectedApplicantDocumentKeys = [
+      "byteSize",
+      "contentType",
+      "createdAt",
+      "documentId",
+      "documentType",
+      "filename",
+      "isCurrent",
+      "scanStatus",
+      "signedAccessAvailable",
+      "status",
+      "updatedAt",
+      "version",
+      "visibility"
+    ].sort();
+    const expectedSignedAccessKeys = ["contentType", "documentId", "expiresAt", "filename", "method", "url", "visibility"].sort();
+    const expectNoInternalGoal3Metadata = (value: unknown) => {
+      const json = JSON.stringify(value);
+      for (const key of [
+        "documentSubtype",
+        "document_subtype",
+        "sourceOrigin",
+        "source_origin",
+        "retentionCategory",
+        "retention_category",
+        "sensitivityClassification",
+        "sensitivity_classification",
+        "redactionClassification",
+        "redaction_classification",
+        "ownerType",
+        "ownerContextRole",
+        "migration"
+      ]) {
+        expect(json).not.toContain(key);
+      }
+    };
+    const completeManagementPlanUpload = async ({
+      idempotencyKey,
+      filename,
+      sha256,
+      byteSize,
+      storageKey
+    }: {
+      idempotencyKey: string;
+      filename: string;
+      sha256: string;
+      byteSize: number;
+      storageKey: string;
+    }) => {
+      const upload = await app.inject({
+        method: "POST",
+        url: `/api/v1/applicant/applications/${applicationId}/documents/upload-sessions`,
+        payload: {
+          documentType: "management_plan",
+          filename,
+          contentType: "application/pdf",
+          byteSize,
+          sha256,
+          totalChunks: 1,
+          idempotencyKey
+        }
+      });
+      expect(upload.statusCode).toBe(201);
+      const chunk = await app.inject({
+        method: "PATCH",
+        url: `/api/v1/applicant/applications/${applicationId}/documents/upload-sessions/${upload.json().sessionId}/chunks/0`,
+        payload: {
+          clientVersion: upload.json().version,
+          chunkSize: byteSize,
+          chunkChecksum: `${idempotencyKey}-chunk`,
+          idempotencyKey: `${idempotencyKey}-chunk`
+        }
+      });
+      expect(chunk.statusCode).toBe(200);
+      const completed = await app.inject({
+        method: "POST",
+        url: `/api/v1/applicant/applications/${applicationId}/documents/upload-sessions/${upload.json().sessionId}/complete`,
+        payload: {
+          clientVersion: chunk.json().version,
+          sha256,
+          byteSize,
+          storageKey
+        }
+      });
+      expect(completed.statusCode, completed.body).toBe(200);
+      return completed;
+    };
+
+    const firstCompleted = await completeManagementPlanUpload({
+      idempotencyKey: "goal3b1-first-upload",
+      filename: "goal-3b1-management-plan.pdf",
+      sha256: "1".repeat(64),
+      byteSize: 123456,
+      storageKey: "lower-env/applications/goal-3b1-management-plan.pdf"
+    });
+    const firstBody = firstCompleted.json();
+    expect(Object.keys(firstBody).sort()).toEqual(["applicationId", "document"].sort());
+    expect(Object.keys(firstBody.document).sort()).toEqual(expectedApplicantDocumentKeys);
+    expectNoInternalGoal3Metadata(firstBody);
+    const firstDocumentId = firstBody.document.documentId;
+
+    const firstAsset = await pool.query<{
+      document_subtype: string | null;
+      source_origin: string | null;
+      retention_category: string | null;
+      sensitivity_classification: string | null;
+      redaction_classification: string | null;
+      visibility: string;
+      import_status: string | null;
+    }>(
+      `
+        SELECT document_subtype, source_origin, retention_category,
+          sensitivity_classification, redaction_classification, visibility, import_status
+        FROM document_assets
+        WHERE id = $1
+      `,
+      [firstDocumentId]
+    );
+    expect(firstAsset.rows[0]).toMatchObject({
+      document_subtype: "management_plan",
+      source_origin: "user_upload",
+      retention_category: "assessment_record_min_7_years",
+      sensitivity_classification: "low",
+      redaction_classification: "standard",
+      visibility: "APPLICANT_AND_ADMIN",
+      import_status: "user_uploaded"
+    });
+
+    const firstOwnership = await pool.query<{
+      id: string;
+      owner_type: string;
+      owner_id: string;
+      owner_context_role: string;
+      required_for_access: boolean;
+      visibility_override: string | null;
+      redaction_override: string | null;
+      created_by_process: string;
+    }>(
+      `
+        SELECT id, owner_type, owner_id, owner_context_role, required_for_access,
+          visibility_override, redaction_override, created_by_process
+        FROM document_asset_ownerships
+        WHERE document_asset_id = $1
+      `,
+      [firstDocumentId]
+    );
+    expect(firstOwnership.rows).toHaveLength(1);
+    expect(firstOwnership.rows[0]).toMatchObject({
+      owner_type: "application",
+      owner_id: applicationId,
+      owner_context_role: "application_package",
+      required_for_access: true,
+      visibility_override: null,
+      redaction_override: null,
+      created_by_process: "management_plan_upload_metadata_enrichment"
+    });
+
+    const signedAccess = await app.inject({
+      method: "GET",
+      url: `/api/v1/applicant/applications/${applicationId}/documents/${firstDocumentId}/access`
+    });
+    expect(signedAccess.statusCode).toBe(200);
+    expect(Object.keys(signedAccess.json()).sort()).toEqual(expectedSignedAccessKeys);
+    expectNoInternalGoal3Metadata(signedAccess.json());
+
+    const secondCompleted = await completeManagementPlanUpload({
+      idempotencyKey: "goal3b1-replacement",
+      filename: "goal-3b1-management-plan-replacement.pdf",
+      sha256: "2".repeat(64),
+      byteSize: 234567,
+      storageKey: "lower-env/applications/goal-3b1-management-plan-replacement.pdf"
+    });
+    const secondBody = secondCompleted.json();
+    const secondDocumentId = secondBody.document.documentId;
+    expect(secondBody.archivedDocumentId).toBe(firstDocumentId);
+    const replacementRows = await pool.query<{
+      id: string;
+      status: string;
+      is_current: boolean;
+      replaces_document_id: string | null;
+      replaced_by_document_id: string | null;
+    }>(
+      `
+        SELECT id, status, is_current, replaces_document_id, replaced_by_document_id
+        FROM document_assets
+        WHERE id = ANY($1::uuid[])
+      `,
+      [[firstDocumentId, secondDocumentId]]
+    );
+    const archivedPrevious = replacementRows.rows.find((row) => row.id === firstDocumentId);
+    const currentReplacement = replacementRows.rows.find((row) => row.id === secondDocumentId);
+    expect(archivedPrevious).toMatchObject({
+      status: "ARCHIVED",
+      is_current: false,
+      replaced_by_document_id: secondDocumentId
+    });
+    expect(currentReplacement).toMatchObject({
+      status: "AVAILABLE",
+      is_current: true,
+      replaces_document_id: firstDocumentId
+    });
+    const firstOwnershipAfterArchive = await pool.query<{
+      id: string;
+      owner_type: string;
+      owner_id: string;
+      owner_context_role: string;
+      created_by_process: string;
+    }>(
+      `
+        SELECT id, owner_type, owner_id, owner_context_role, created_by_process
+        FROM document_asset_ownerships
+        WHERE document_asset_id = $1
+      `,
+      [firstDocumentId]
+    );
+    expect(firstOwnershipAfterArchive.rows).toHaveLength(1);
+    expect(firstOwnershipAfterArchive.rows[0]).toMatchObject({
+      id: firstOwnership.rows[0]?.id,
+      owner_type: "application",
+      owner_id: applicationId,
+      owner_context_role: "application_package",
+      created_by_process: "management_plan_upload_metadata_enrichment"
+    });
+    const secondOwnership = await pool.query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM document_asset_ownerships WHERE document_asset_id = $1",
+      [secondDocumentId]
+    );
+    expect(secondOwnership.rows[0]?.count).toBe("1");
+
+    const duplicateDocumentId = randomUUID();
+    const duplicateUpdatedAt = "2026-01-01T00:00:00.000Z";
+    await pool.query(
+      `
+        INSERT INTO document_assets (
+          id, application_id, assessment_episode_id, park_id, document_type, filename, content_type,
+          byte_size, sha256, storage_provider, storage_key, status, visibility, version, is_current,
+          uploaded_by_actor_id, scan_status, created_at, updated_at
+        )
+        VALUES (
+          $1, $2, $3, $4, 'management_plan', 'pre-existing-duplicate-management-plan.pdf', 'application/pdf',
+          345678, $5, 'lower_env_stub', $6, 'ARCHIVED', 'APPLICANT_AND_ADMIN', 99, false,
+          $7, 'clean_stub', $8::timestamptz, $8::timestamptz
+        )
+      `,
+      [
+        duplicateDocumentId,
+        applicationId,
+        applicantEpisode.episodeId,
+        applicantEpisode.parkId,
+        "3".repeat(64),
+        "lower-env/applications/pre-existing-duplicate-management-plan.pdf",
+        applicantSession.actor.actorId,
+        duplicateUpdatedAt
+      ]
+    );
+    const duplicateCompleted = await completeManagementPlanUpload({
+      idempotencyKey: "goal3b1-duplicate",
+      filename: "goal-3b1-duplicate-management-plan.pdf",
+      sha256: "3".repeat(64),
+      byteSize: 345678,
+      storageKey: "lower-env/applications/goal-3b1-duplicate-management-plan.pdf"
+    });
+    expect(duplicateCompleted.json().duplicateOfDocumentId).toBe(duplicateDocumentId);
+    const duplicateAsset = await pool.query<{
+      document_subtype: string | null;
+      source_origin: string | null;
+      retention_category: string | null;
+      sensitivity_classification: string | null;
+      redaction_classification: string | null;
+      import_status: string | null;
+      updated_at: Date | string;
+    }>(
+      `
+        SELECT document_subtype, source_origin, retention_category, sensitivity_classification,
+          redaction_classification, import_status, updated_at
+        FROM document_assets
+        WHERE id = $1
+      `,
+      [duplicateDocumentId]
+    );
+    expect(duplicateAsset.rows[0]).toMatchObject({
+      document_subtype: null,
+      source_origin: null,
+      retention_category: null,
+      sensitivity_classification: null,
+      redaction_classification: null,
+      import_status: null
+    });
+    expect(new Date(duplicateAsset.rows[0]!.updated_at).toISOString()).toBe(duplicateUpdatedAt);
+    const duplicateOwnership = await pool.query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM document_asset_ownerships WHERE document_asset_id = $1",
+      [duplicateDocumentId]
+    );
+    expect(duplicateOwnership.rows[0]?.count).toBe("0");
+  });
+
+  it("replays concurrent upload-session idempotency without duplicate sessions or raw unique errors", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const applicantRepository = new PostgresApplicantRepository(pool, unitOfWork, ledger);
+    const applicantEpisode = await seedApplicantEpisode(pool);
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: applicantEpisode.parkId }];
+    applicantSession.roleAssignments = [
+      {
+        ...applicantSession.roleAssignments[0]!,
+        scope: { type: "PARK", id: applicantEpisode.parkId }
+      }
+    ];
+    const stores = await createPostgresDomainStores({ client: pool, unitOfWork });
+    const app = buildApp({
+      applicantStore: stores.applicantStore,
+      applicantRepository,
+      resolveSession: async () => applicantSession,
+      auditLedger: ledger
+    });
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/applicant/applications",
+      payload: {
+        parkId: applicantEpisode.parkId,
+        episodeId: applicantEpisode.episodeId,
+        idempotencyKey: "integration-upload-idem-application"
+      }
+    });
+    expect(created.statusCode).toBe(201);
+    const payload = {
+      documentType: "management_plan",
+      filename: "idempotent-management-plan.pdf",
+      contentType: "application/pdf",
+      byteSize: 123456,
+      sha256: "a".repeat(64),
+      totalChunks: 3,
+      idempotencyKey: "integration-upload-session-concurrent"
+    };
+
+    const [first, second] = await Promise.all([
+      app.inject({
+        method: "POST",
+        url: `/api/v1/applicant/applications/${created.json().applicationId}/documents/upload-sessions`,
+        payload
+      }),
+      app.inject({
+        method: "POST",
+        url: `/api/v1/applicant/applications/${created.json().applicationId}/documents/upload-sessions`,
+        payload
+      })
+    ]);
+    expect(first.statusCode).toBe(201);
+    expect(second.statusCode).toBe(201);
+    expect(first.json().sessionId).toBe(second.json().sessionId);
+    const sessions = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM document_upload_sessions WHERE application_id = $1 AND idempotency_key = $2",
+      [created.json().applicationId, payload.idempotencyKey]
+    );
+    expect(sessions.rows[0]?.count).toBe("1");
+
+    const collision = await app.inject({
+      method: "POST",
+      url: `/api/v1/applicant/applications/${created.json().applicationId}/documents/upload-sessions`,
+      payload: {
+        ...payload,
+        filename: "different-management-plan.pdf"
+      }
+    });
+    expect(collision.statusCode).toBe(409);
+    expect(collision.json().error.code).toBe("idempotency_conflict");
   });
 
   it("prevents stale multi-instance applicant autosave overwrites with DB-enforced versions", async () => {
@@ -1206,12 +1973,223 @@ run("Postgres domain store adapters", () => {
     expect(rollbackAudits.rows[0]?.count).toBe("0");
   });
 
+  it("keeps operational episode uniqueness on award cycle while source cycle remains provenance", async () => {
+    const snapshot = lowerEnvironmentParkCycleSnapshotFixture;
+    const countryCode = `Z${randomUUID().slice(0, 2).toUpperCase()}`;
+    const priorCycleId = randomUUID();
+    const currentCycleId = randomUUID();
+    const priorWindowId = randomUUID();
+    const currentWindowId = randomUUID();
+    const parkId = randomUUID();
+    const priorEpisodeId = randomUUID();
+    const currentEpisodeId = randomUUID();
+    const priorApplicationId = randomUUID();
+    const currentApplicationId = randomUUID();
+
+    await pool.query(
+      "INSERT INTO parks (id, organisation_id, award_track_code, name, status) VALUES ($1, $2, $3, $4, 'ACTIVE')",
+      [parkId, snapshot.organisation.id, snapshot.awardTrack.code, `Goal 5 Carryover Park ${parkId}`]
+    );
+    for (const [cycleId, cycleYear] of [[priorCycleId, 2025], [currentCycleId, 2026]] as const) {
+      await pool.query(
+        `
+          INSERT INTO award_cycles (
+            id, country_code, cycle_year, application_window_opens_at_utc,
+            application_window_closes_at_utc, result_announced_at_utc
+          )
+          VALUES ($1, $2, $3, '2026-01-01T00:00:00Z'::timestamptz, '2026-04-01T00:00:00Z'::timestamptz, NULL)
+        `,
+        [cycleId, countryCode, cycleYear]
+      );
+    }
+    await pool.query(
+      `
+        INSERT INTO cycle_windows (id, award_cycle_id, episode_type, opens_at_utc, closes_at_utc)
+        VALUES
+          ($1, $2, 'MYSTERY_SHOP', '2025-05-01T00:00:00Z'::timestamptz, '2025-08-01T00:00:00Z'::timestamptz),
+          ($3, $4, 'FULL_ASSESSMENT', '2026-05-01T00:00:00Z'::timestamptz, '2026-08-01T00:00:00Z'::timestamptz)
+      `,
+      [priorWindowId, priorCycleId, currentWindowId, currentCycleId]
+    );
+    await pool.query(
+      `
+        INSERT INTO assessment_episodes (
+          id, park_id, award_cycle_id, cycle_window_id, award_track_code,
+          episode_type, status, mystery_suppressed
+        )
+        VALUES ($1, $2, $3, $4, $5, 'MYSTERY_SHOP', 'READY_FOR_ALLOCATION', true)
+      `,
+      [priorEpisodeId, parkId, priorCycleId, priorWindowId, snapshot.awardTrack.code]
+    );
+    await pool.query(
+      `
+        INSERT INTO assessment_episodes (
+          id, park_id, award_cycle_id, source_cycle_id, cycle_window_id, award_track_code,
+          episode_type, status, mystery_suppressed
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, 'FULL_ASSESSMENT', 'APPLICATION_DRAFT', false)
+      `,
+      [currentEpisodeId, parkId, currentCycleId, priorCycleId, currentWindowId, snapshot.awardTrack.code]
+    );
+    await pool.query(
+      `
+        INSERT INTO applications (id, assessment_episode_id, park_id, owner_internal_user_id, status, completion_percent, version, updated_at_utc)
+        VALUES
+          ($1, $2, $3, $5, 'SUBMITTED', 100, 0, now()),
+          ($4, $6, $3, $5, 'DRAFT', 20, 0, now())
+      `,
+      [
+        priorApplicationId,
+        priorEpisodeId,
+        parkId,
+        currentApplicationId,
+        parkManagerRoleAssignmentFixture.internalUserId,
+        currentEpisodeId
+      ]
+    );
+
+    const episodes = await pool.query<{
+      id: string;
+      award_cycle_id: string;
+      source_cycle_id: string;
+      operational_year: number;
+      episode_type: string;
+    }>(
+      `
+        SELECT id, award_cycle_id, source_cycle_id, operational_year, episode_type
+        FROM assessment_episodes
+        WHERE id = ANY($1::uuid[])
+        ORDER BY episode_type
+      `,
+      [[priorEpisodeId, currentEpisodeId]]
+    );
+    expect(episodes.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: currentEpisodeId,
+        award_cycle_id: currentCycleId,
+        source_cycle_id: priorCycleId,
+        operational_year: 2026,
+        episode_type: "FULL_ASSESSMENT"
+      }),
+      expect.objectContaining({
+        id: priorEpisodeId,
+        award_cycle_id: priorCycleId,
+        source_cycle_id: priorCycleId,
+        operational_year: 2025,
+        episode_type: "MYSTERY_SHOP"
+      })
+    ]));
+
+    const applications = await pool.query<{ id: string; status: string }>(
+      "SELECT id, status FROM applications WHERE id = ANY($1::uuid[])",
+      [[priorApplicationId, currentApplicationId]]
+    );
+    expect(applications.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: priorApplicationId, status: "SUBMITTED" }),
+      expect.objectContaining({ id: currentApplicationId, status: "DRAFT" })
+    ]));
+
+    await expect(pool.query(
+      `
+        INSERT INTO assessment_episodes (
+          id, park_id, award_cycle_id, cycle_window_id, award_track_code,
+          episode_type, status, mystery_suppressed
+        )
+        VALUES ($1, $2, $3, $4, $5, 'FULL_ASSESSMENT', 'APPLICATION_DRAFT', false)
+      `,
+      [randomUUID(), parkId, currentCycleId, priorWindowId, snapshot.awardTrack.code]
+    )).rejects.toThrow();
+  });
+
+  it("tracks typed park area sources and preserves immutable application area snapshots for allocation rules", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const areaService = new PostgresParkAreaService(pool, unitOfWork, ledger);
+    const episode = await seedAllocationEpisode(pool);
+
+    await areaService.recordOsSuggestion({
+      parkId: episode.parkId,
+      areaHectares: 24,
+      sourceLabel: "OS Open Greenspace lower-env suggestion"
+    });
+    await areaService.recordLegacyImport({
+      parkId: episode.parkId,
+      areaHectares: 20,
+      sourceLabel: "Legacy Park.ParkSize",
+      makeCurrent: true
+    });
+    await areaService.recordManualEntry({
+      parkId: episode.parkId,
+      areaHectares: 22,
+      actor: globalAdminSessionFixture.actor,
+      request: { requestId: "goal5-manual-area" }
+    });
+    await areaService.confirmApplicantArea({
+      parkId: episode.parkId,
+      areaHectares: 26.5,
+      actor: globalAdminSessionFixture.actor,
+      request: { requestId: "goal5-applicant-area" }
+    });
+    const snapshot = await areaService.captureApplicationSnapshot({
+      applicationId: episode.applicationId,
+      snapshotReason: "application_submission"
+    });
+    await areaService.overrideArea({
+      parkId: episode.parkId,
+      areaHectares: 12,
+      reason: "Synthetic correction after application snapshot.",
+      actor: globalAdminSessionFixture.actor,
+      request: { requestId: "goal5-area-override", idempotencyKey: "goal5-area-override" }
+    });
+
+    const measurements = await pool.query<{ source_kind: string; is_current: boolean }>(
+      "SELECT source_kind, is_current FROM park_area_measurements WHERE park_id = $1 ORDER BY captured_at_utc",
+      [episode.parkId]
+    );
+    expect(measurements.rows.map((row) => row.source_kind)).toEqual(expect.arrayContaining([
+      "os_open_greenspace_suggestion",
+      "legacy_import",
+      "manual_entry",
+      "applicant_confirmed",
+      "admin_override"
+    ]));
+    expect(measurements.rows.filter((row) => row.is_current)).toEqual([
+      expect.objectContaining({ source_kind: "admin_override", is_current: true })
+    ]);
+    expect(snapshot).toMatchObject({
+      applicationId: episode.applicationId,
+      areaHectares: 26.5,
+      sourceKind: "applicant_confirmed",
+      snapshotReason: "application_submission"
+    });
+    const persistedSnapshot = await pool.query<{ area_hectares: string; source_kind: string }>(
+      "SELECT area_hectares, source_kind FROM application_area_snapshots WHERE application_id = $1",
+      [episode.applicationId]
+    );
+    expect(Number(persistedSnapshot.rows[0]?.area_hectares)).toBe(26.5);
+    expect(persistedSnapshot.rows[0]?.source_kind).toBe("applicant_confirmed");
+    const overrideEvidence = await pool.query<{ audit_count: string; override_count: string }>(
+      `
+        SELECT
+          (SELECT count(*)::text FROM audit_events WHERE action = 'OVERRIDE_PARK_AREA' AND entity_id = $1) AS audit_count,
+          (SELECT count(*)::text FROM admin_override_events WHERE override_type = 'PARK_AREA_OVERRIDE' AND target_id = $1) AS override_count
+      `,
+      [episode.parkId]
+    );
+    expect(overrideEvidence.rows[0]).toMatchObject({ audit_count: "1", override_count: "1" });
+
+    const repository = new PostgresAllocationRepository(pool, unitOfWork, ledger);
+    const readyEpisodes = await repository.readyEpisodes(globalAdminSessionFixture);
+    expect(JSON.stringify(readyEpisodes)).toContain("over_25_hectares");
+  });
+
   it("persists allocation hold, release, judge decisions, reassignment, and contact reveal through DB-first repositories", async () => {
     const unitOfWork = createUnitOfWork(pool);
     const ledger = new PostgresAuditLedger(pool, unitOfWork);
     const allocationRepository = new PostgresAllocationRepository(pool, unitOfWork, ledger);
     const firstAssessor = await seedAssessorProfile(pool, "allocation-first");
     const secondAssessor = await seedAssessorProfile(pool, "allocation-second");
+    const observerAssessor = await seedAssessorProfile(pool, "allocation-observer");
     const replacementAssessor = await seedAssessorProfile(pool, "allocation-replacement");
     const episode = await seedAllocationEpisode(pool);
     let stores = await createPostgresDomainStores({ client: pool, unitOfWork });
@@ -1228,14 +2206,40 @@ run("Postgres domain store adapters", () => {
       method: "POST",
       url: `/api/v1/admin/allocations/${episode.episodeId}/hold`,
       payload: {
-        assessorIds: [firstAssessor.profileId, secondAssessor.profileId],
-        finalJudgeCount: 2,
+        assessorIds: [firstAssessor.profileId, secondAssessor.profileId, observerAssessor.profileId],
+        finalJudgeCount: 3,
+        reason: "Synthetic training observer coverage.",
         acknowledgedFlagTypes: [],
         idempotencyKey: "allocation-hold-db-first"
       }
     });
     expect(held.statusCode).toBe(200);
     const allocationId = held.json().allocationId;
+    const heldRoles = await pool.query<{ assessor_profile_id: string; assignment_role: string; required_for_contact_reveal: boolean }>(
+      `
+        SELECT assessor_profile_id, assignment_role, required_for_contact_reveal
+        FROM judge_assignments
+        WHERE allocation_id = $1
+      `,
+      [allocationId]
+    );
+    expect(heldRoles.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        assessor_profile_id: firstAssessor.profileId,
+        assignment_role: "PRIMARY_JUDGE",
+        required_for_contact_reveal: true
+      }),
+      expect.objectContaining({
+        assessor_profile_id: secondAssessor.profileId,
+        assignment_role: "SECONDARY_JUDGE",
+        required_for_contact_reveal: true
+      }),
+      expect.objectContaining({
+        assessor_profile_id: observerAssessor.profileId,
+        assignment_role: "TRAINING_OBSERVER",
+        required_for_contact_reveal: false
+      })
+    ]));
 
     const released = await app.inject({
       method: "POST",
@@ -1303,6 +2307,14 @@ run("Postgres domain store adapters", () => {
     });
     expect(reassign.statusCode).toBe(200);
     expect(reassign.json().assignments.find((assignment: { assignmentId: string }) => assignment.assignmentId === firstAssignment.assignmentId).status).toBe("WITHDRAWN");
+    const replacementRole = await pool.query<{ assignment_role: string; required_for_contact_reveal: boolean }>(
+      "SELECT assignment_role, required_for_contact_reveal FROM judge_assignments WHERE assessor_profile_id = $1 AND allocation_id = $2",
+      [replacementAssessor.profileId, allocationId]
+    );
+    expect(replacementRole.rows[0]).toMatchObject({
+      assignment_role: "PRIMARY_JUDGE",
+      required_for_contact_reveal: true
+    });
 
     const revokedAccess = await firstJudgeApp.inject({ method: "GET", url: "/api/v1/assessor/assignments" });
     expect(revokedAccess.statusCode).toBe(200);
@@ -1389,6 +2401,14 @@ run("Postgres domain store adapters", () => {
       [assignment.assignmentId]
     );
     expect(dbAssignment.rows[0]).toMatchObject({ status: "ACCEPTED", contact_reveal_available: false });
+    const mysteryRole = await pool.query<{ assignment_role: string; required_for_contact_reveal: boolean }>(
+      "SELECT assignment_role, required_for_contact_reveal FROM judge_assignments WHERE id = $1",
+      [assignment.assignmentId]
+    );
+    expect(mysteryRole.rows[0]).toMatchObject({
+      assignment_role: "MYSTERY_JUDGE",
+      required_for_contact_reveal: true
+    });
   });
 
   it("rolls back allocation and assessor DB-first mutations when transactional audit append fails", async () => {
@@ -1668,6 +2688,734 @@ run("Postgres domain store adapters", () => {
       [applicationId]
     );
     expect(autosaveAudits.rows[0]?.count).toBe("0");
+  });
+
+  it("persists communications message commands and DB-backed listings across cold starts", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedAllocationEpisode(pool, "FULL_ASSESSMENT");
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, ledger),
+      resolveSession: async (request) => request.url.includes("/api/v1/admin/") ? globalAdminSessionFixture : applicantSession,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/v1/applicant/messages",
+      payload: {
+        episodeId: episode.episodeId,
+        subject: "Application support",
+        body: "Please help with this application.",
+        idempotencyKey: "communications-full-create"
+      }
+    });
+    expect(created.statusCode).toBe(200);
+    const threadId = created.json().thread.threadId;
+    const messageId = created.json().message.messageId;
+
+    const coldUnitOfWork = createUnitOfWork(pool);
+    const coldApp = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, coldUnitOfWork, new PostgresAuditLedger(pool, coldUnitOfWork)),
+      resolveSession: async (request) => request.url.includes("/api/v1/admin/") ? globalAdminSessionFixture : applicantSession,
+      productionLike: true
+    });
+    const applicantListing = await coldApp.inject({ method: "GET", url: "/api/v1/applicant/messages" });
+    expect(applicantListing.statusCode).toBe(200);
+    expect(applicantListing.json().threads.map((thread: { threadId: string }) => thread.threadId)).toContain(threadId);
+    expect(applicantListing.json().messages.map((message: { messageId: string }) => message.messageId)).toContain(messageId);
+
+    const adminListing = await coldApp.inject({ method: "GET", url: "/api/v1/admin/messages" });
+    expect(adminListing.statusCode).toBe(200);
+    expect(adminListing.json().threads.map((thread: { threadId: string }) => thread.threadId)).toContain(threadId);
+    expect(adminListing.json().messages.map((message: { messageId: string }) => message.messageId)).toContain(messageId);
+
+    const audit = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM audit_events WHERE entity_id = $1 AND action = 'CREATE_APPLICANT_MESSAGE_THREAD'",
+      [threadId]
+    );
+    expect(audit.rows[0]?.count).toBe("1");
+  });
+
+  it("suppresses admin-created and applicant-created Mystery message threads from applicant listings", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedAllocationEpisode(pool, "MYSTERY_SHOP");
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, ledger),
+      resolveSession: async (request) => request.url.includes("/api/v1/admin/") ? globalAdminSessionFixture : applicantSession,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const adminCreated = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/messages",
+      payload: {
+        episodeId: episode.episodeId,
+        subject: "Mystery operational detail",
+        body: "Mystery assignment operational message.",
+        idempotencyKey: "communications-mystery-admin-create"
+      }
+    });
+    expect(adminCreated.statusCode).toBe(200);
+    expect(adminCreated.json().thread).toMatchObject({
+      status: "SUPPRESSED",
+      visibleToApplicant: false,
+      subject: "Application query"
+    });
+
+    const applicantCreated = await app.inject({
+      method: "POST",
+      url: "/api/v1/applicant/messages",
+      payload: {
+        episodeId: episode.episodeId,
+        subject: "Applicant Mystery query",
+        body: "Applicant should not see operational Mystery metadata.",
+        idempotencyKey: "communications-mystery-applicant-create"
+      }
+    });
+    expect(applicantCreated.statusCode).toBe(200);
+    expect(applicantCreated.json().thread.status).toBe("SUPPRESSED");
+    expect(JSON.stringify(applicantCreated.json())).not.toContain("visibleToApplicant");
+    expect(JSON.stringify(applicantCreated.json())).not.toContain("participantActorIds");
+    expect(JSON.stringify(applicantCreated.json())).not.toContain("senderActorId");
+
+    const applicantListing = await app.inject({ method: "GET", url: "/api/v1/applicant/messages" });
+    expect(applicantListing.statusCode).toBe(200);
+    expect(applicantListing.json().threads.map((thread: { threadId: string }) => thread.threadId)).not.toContain(adminCreated.json().thread.threadId);
+    expect(applicantListing.json().threads.map((thread: { threadId: string }) => thread.threadId)).not.toContain(applicantCreated.json().thread.threadId);
+
+    const adminListing = await app.inject({ method: "GET", url: "/api/v1/admin/messages" });
+    expect(adminListing.statusCode).toBe(200);
+    expect(adminListing.json().threads.map((thread: { threadId: string }) => thread.threadId)).toEqual(
+      expect.arrayContaining([adminCreated.json().thread.threadId, applicantCreated.json().thread.threadId])
+    );
+    const suppressions = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM notification_suppressions WHERE reason = 'mystery_redaction' AND related_entity_type = 'message_thread' AND related_entity_id IN ($1, $2)",
+      [adminCreated.json().thread.threadId, applicantCreated.json().thread.threadId]
+    );
+    expect(suppressions.rows[0]?.count).toBe("2");
+  });
+
+  it("uses current DB visibility state across independently initialized communications runtimes", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedAllocationEpisode(pool, "FULL_ASSESSMENT");
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+    const appA = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, ledger),
+      resolveSession: async () => applicantSession,
+      auditLedger: ledger,
+      productionLike: true
+    });
+    const created = await appA.inject({
+      method: "POST",
+      url: "/api/v1/applicant/messages",
+      payload: {
+        episodeId: episode.episodeId,
+        subject: "Visibility race",
+        body: "Visible before DB-side suppression.",
+        idempotencyKey: "communications-visibility-race"
+      }
+    });
+    expect(created.statusCode).toBe(200);
+    const threadId = created.json().thread.threadId;
+
+    await pool.query(
+      "UPDATE message_threads SET visible_to_applicant = false, status = 'SUPPRESSED', version = version + 1, updated_at_utc = now() WHERE id = $1",
+      [threadId]
+    );
+    const unitOfWorkB = createUnitOfWork(pool);
+    const appB = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWorkB, new PostgresAuditLedger(pool, unitOfWorkB)),
+      resolveSession: async () => applicantSession,
+      productionLike: true
+    });
+    const listing = await appB.inject({ method: "GET", url: "/api/v1/applicant/messages" });
+    expect(listing.statusCode).toBe(200);
+    expect(listing.json().threads.map((thread: { threadId: string }) => thread.threadId)).not.toContain(threadId);
+  });
+
+  it("rolls back communications domain writes when audit append fails", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const episode = await seedAllocationEpisode(pool, "FULL_ASSESSMENT");
+    const failingLedger = {
+      async append() {
+        throw new Error("forced communications audit failure");
+      }
+    };
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, failingLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: failingLedger,
+      productionLike: true
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/messages",
+      payload: {
+        episodeId: episode.episodeId,
+        subject: "Rollback communications",
+        body: "This should roll back.",
+        idempotencyKey: "communications-audit-rollback"
+      }
+    });
+    expect(response.statusCode).toBe(500);
+    const rows = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM message_threads WHERE assessment_episode_id = $1 AND subject = 'Rollback communications'",
+      [episode.episodeId]
+    );
+    expect(rows.rows[0]?.count).toBe("0");
+  });
+
+  it("persists held Full Assessment decisions across cold starts and publishes through batch release", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedSubmittedResultEpisode(pool, "results-full-held", "FULL_ASSESSMENT", true);
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+    const app = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, unitOfWork, ledger),
+      resolveSession: async (request) => request.url.includes("/api/v1/applicant/") ? applicantSession : globalAdminSessionFixture,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const held = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${episode.episodeId}/hold`,
+      payload: {
+        thresholdAcknowledged: true,
+        internalNotes: "DB-first internal result note.",
+        idempotencyKey: "results-full-hold-0001"
+      }
+    });
+    expect(held.statusCode).toBe(200);
+    expect(held.json().decision).toMatchObject({
+      status: "CONFIRMED_HELD",
+      outcome: "THRESHOLD_MET",
+      assessmentCount: 1,
+      thresholdAcknowledged: true
+    });
+
+    const coldUnitOfWork = createUnitOfWork(pool);
+    const coldApp = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, coldUnitOfWork, new PostgresAuditLedger(pool, coldUnitOfWork)),
+      resolveSession: async (request) => request.url.includes("/api/v1/applicant/") ? applicantSession : globalAdminSessionFixture,
+      productionLike: true
+    });
+    const adminDetail = await coldApp.inject({ method: "GET", url: `/api/v1/admin/results/${episode.episodeId}` });
+    expect(adminDetail.statusCode).toBe(200);
+    expect(adminDetail.json().decision.status).toBe("CONFIRMED_HELD");
+    expect(adminDetail.json().assessments[0]).toMatchObject({ status: "SUBMITTED" });
+
+    const singleRelease = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "single",
+        idempotencyKey: "results-full-single-denied"
+      }
+    });
+    expect(singleRelease.statusCode).toBe(409);
+
+    const published = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "full_batch",
+        idempotencyKey: "results-full-publish-0001"
+      }
+    });
+    expect(published.statusCode).toBe(200);
+    expect(published.json().decision.status).toBe("PUBLISHED");
+    expect(published.json().artifacts[0]).toMatchObject({ artifactType: "certificate_shell", publicVisible: true });
+    expect(published.json().awardCache).toMatchObject({ resultStatus: "PUBLISHED", displayLabel: "Award published" });
+    expect(published.json().publicMapEvent).toMatchObject({ eventType: "award_published", payload: { published: true } });
+    const publicMapPayload = JSON.stringify(published.json().publicMapEvent.payload);
+    expect(publicMapPayload).not.toContain("rawScore");
+    expect(publicMapPayload).not.toContain("judge");
+    expect(publicMapPayload).not.toContain("visit");
+    expect(publicMapPayload).not.toContain("storage");
+
+    const replayedPublish = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "full_batch",
+        idempotencyKey: "results-full-publish-0001"
+      }
+    });
+    expect(replayedPublish.statusCode).toBe(200);
+    expect(replayedPublish.json().decision.status).toBe("PUBLISHED");
+    expect(replayedPublish.json().artifacts[0].artifactId).toBe(published.json().artifacts[0].artifactId);
+    expect(replayedPublish.json().publicMapEvent.eventId).toBe(published.json().publicMapEvent.eventId);
+
+    const applicant = await app.inject({ method: "GET", url: `/api/v1/applicant/results/${episode.episodeId}` });
+    expect(applicant.statusCode).toBe(200);
+    expect(applicant.json()).toMatchObject({ status: "published", displayLabel: "Award published" });
+    const applicantPayload = JSON.stringify(applicant.json());
+    expect(applicantPayload).not.toContain("rawScore");
+    expect(applicantPayload).not.toContain("judge");
+    expect(applicantPayload).not.toContain("assignment");
+    expect(applicantPayload).not.toContain("internal");
+    expect(applicantPayload).not.toContain("storageKey");
+    expect(applicantPayload).not.toContain("MYSTERY");
+
+    const rows = await Promise.all([
+      pool.query<{ count: string }>("SELECT count(*) FROM result_artifacts WHERE decision_result_id = $1", [held.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM public_map_update_events WHERE decision_result_id = $1 AND event_type = 'award_published'", [held.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM audit_events WHERE entity_id = $1 AND action IN ('HOLD_DECISION_RESULT', 'PUBLISH_DECISION_RESULT')", [held.json().decision.decisionId])
+    ]);
+    expect(rows[0].rows[0]?.count).toBe("1");
+    expect(rows[1].rows[0]?.count).toBe("1");
+    expect(rows[2].rows[0]?.count).toBe("2");
+  });
+
+  it("publishes Mystery decisions individually and keeps public/applicant payloads Mystery-safe", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedSubmittedResultEpisode(pool, "results-mystery", "MYSTERY_SHOP", false);
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+    const app = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, unitOfWork, ledger),
+      resolveSession: async (request) => request.url.includes("/api/v1/applicant/") ? applicantSession : globalAdminSessionFixture,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const held = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${episode.episodeId}/hold`,
+      payload: {
+        thresholdAcknowledged: true,
+        reason: "Below threshold acknowledged for lower-env test.",
+        idempotencyKey: "results-mystery-hold-0001"
+      }
+    });
+    expect(held.statusCode).toBe(200);
+    expect(held.json().decision).toMatchObject({ status: "CONFIRMED_HELD", outcome: "THRESHOLD_NOT_MET", thresholdMet: false });
+
+    const batch = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "full_batch",
+        idempotencyKey: "results-mystery-batch-denied"
+      }
+    });
+    expect(batch.statusCode).toBe(409);
+
+    const published = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "single",
+        idempotencyKey: "results-mystery-publish-0001"
+      }
+    });
+    expect(published.statusCode).toBe(200);
+    const eventPayload = JSON.stringify(published.json().publicMapEvent.payload);
+    expect(eventPayload).toContain(episode.parkId);
+    expect(eventPayload).not.toContain("MYSTERY");
+    expect(eventPayload).not.toContain("visit");
+    expect(eventPayload).not.toContain("assessment");
+    expect(eventPayload).not.toContain("rawScore");
+
+    const applicant = await app.inject({ method: "GET", url: `/api/v1/applicant/results/${episode.episodeId}` });
+    expect(applicant.statusCode).toBe(200);
+    expect(JSON.stringify(applicant.json())).not.toContain("MYSTERY");
+    expect(JSON.stringify(applicant.json())).not.toContain("rawScore");
+  });
+
+  it("prevents double publication across independent results runtimes and rolls back on audit failure", async () => {
+    const episode = await seedSubmittedResultEpisode(pool, "results-concurrency", "FULL_ASSESSMENT", true);
+    const firstUnitOfWork = createUnitOfWork(pool);
+    const firstLedger = new PostgresAuditLedger(pool, firstUnitOfWork);
+    const firstApp = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, firstUnitOfWork, firstLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: firstLedger,
+      productionLike: true
+    });
+    const held = await firstApp.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${episode.episodeId}/hold`,
+      payload: {
+        thresholdAcknowledged: true,
+        idempotencyKey: "results-concurrent-hold"
+      }
+    });
+    expect(held.statusCode).toBe(200);
+
+    const secondUnitOfWork = createUnitOfWork(pool);
+    const secondLedger = new PostgresAuditLedger(pool, secondUnitOfWork);
+    const appA = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, firstUnitOfWork, firstLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: firstLedger,
+      productionLike: true
+    });
+    const appB = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, secondUnitOfWork, secondLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: secondLedger,
+      productionLike: true
+    });
+    const [publishA, publishB] = await Promise.all([
+      appA.inject({
+        method: "POST",
+        url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+        payload: { releaseMode: "full_batch", idempotencyKey: "results-concurrent-publish-a" }
+      }),
+      appB.inject({
+        method: "POST",
+        url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+        payload: { releaseMode: "full_batch", idempotencyKey: "results-concurrent-publish-b" }
+      })
+    ]);
+    expect([publishA.statusCode, publishB.statusCode].sort()).toEqual([200, 409]);
+    const sideEffects = await Promise.all([
+      pool.query<{ count: string }>("SELECT count(*) FROM result_artifacts WHERE decision_result_id = $1", [held.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM public_map_update_events WHERE decision_result_id = $1 AND event_type = 'award_published'", [held.json().decision.decisionId])
+    ]);
+    expect(sideEffects[0].rows[0]?.count).toBe("1");
+    expect(sideEffects[1].rows[0]?.count).toBe("1");
+
+    const rollbackEpisode = await seedSubmittedResultEpisode(pool, "results-audit-rollback", "FULL_ASSESSMENT", true);
+    const failingLedger = {
+      async append() {
+        throw new Error("forced results audit failure");
+      }
+    };
+    const failingApp = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, createUnitOfWork(pool), failingLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: failingLedger,
+      productionLike: true
+    });
+    const failedHold = await failingApp.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${rollbackEpisode.episodeId}/hold`,
+      payload: {
+        thresholdAcknowledged: true,
+        idempotencyKey: "results-audit-rollback-hold"
+      }
+    });
+    expect(failedHold.statusCode).toBe(500);
+    const heldRows = await pool.query<{ count: string }>("SELECT count(*) FROM decision_results WHERE assessment_episode_id = $1", [rollbackEpisode.episodeId]);
+    expect(heldRows.rows[0]?.count).toBe("0");
+
+    const publishRollbackEpisode = await seedSubmittedResultEpisode(pool, "results-publish-audit-rollback", "FULL_ASSESSMENT", true);
+    const publishRollbackUnitOfWork = createUnitOfWork(pool);
+    const publishRollbackLedger = new PostgresAuditLedger(pool, publishRollbackUnitOfWork);
+    const publishRollbackApp = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, publishRollbackUnitOfWork, publishRollbackLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: publishRollbackLedger,
+      productionLike: true
+    });
+    const rollbackHeld = await publishRollbackApp.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${publishRollbackEpisode.episodeId}/hold`,
+      payload: {
+        thresholdAcknowledged: true,
+        idempotencyKey: "results-publish-rollback-hold"
+      }
+    });
+    expect(rollbackHeld.statusCode).toBe(200);
+    const publishFailingLedger = {
+      async append() {
+        throw new Error("forced results publish audit failure");
+      }
+    };
+    const publishFailingApp = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, createUnitOfWork(pool), publishFailingLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: publishFailingLedger,
+      productionLike: true
+    });
+    const failedPublish = await publishFailingApp.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${rollbackHeld.json().decision.decisionId}/publish`,
+      payload: {
+        releaseMode: "full_batch",
+        idempotencyKey: "results-publish-audit-rollback"
+      }
+    });
+    expect(failedPublish.statusCode).toBe(500);
+    const publishRollbackRows = await Promise.all([
+      pool.query<{ status: string }>("SELECT status FROM decision_results WHERE id = $1", [rollbackHeld.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM result_artifacts WHERE decision_result_id = $1", [rollbackHeld.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM public_map_update_events WHERE decision_result_id = $1 AND event_type = 'award_published'", [rollbackHeld.json().decision.decisionId]),
+      pool.query<{ count: string }>("SELECT count(*) FROM park_award_cache WHERE decision_result_id = $1", [rollbackHeld.json().decision.decisionId])
+    ]);
+    expect(publishRollbackRows[0].rows[0]?.status).toBe("CONFIRMED_HELD");
+    expect(publishRollbackRows[1].rows[0]?.count).toBe("0");
+    expect(publishRollbackRows[2].rows[0]?.count).toBe("0");
+    expect(publishRollbackRows[3].rows[0]?.count).toBe("0");
+  });
+
+  it("withdraws published results and enqueues a withdrawal public map event", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const episode = await seedSubmittedResultEpisode(pool, "results-withdraw", "FULL_ASSESSMENT", true);
+    const applicantSession = structuredClone(parkManagerSessionFixture);
+    applicantSession.actor.scopes = [{ type: "PARK", id: episode.parkId }];
+    applicantSession.roleAssignments = [{ ...applicantSession.roleAssignments[0]!, scope: { type: "PARK", id: episode.parkId } }];
+    const app = buildApp({
+      resultsRepository: new PostgresResultsRepository(pool, unitOfWork, ledger),
+      resolveSession: async (request) => request.url.includes("/api/v1/applicant/") ? applicantSession : globalAdminSessionFixture,
+      auditLedger: ledger,
+      productionLike: true
+    });
+    const held = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${episode.episodeId}/hold`,
+      payload: { thresholdAcknowledged: true, idempotencyKey: "results-withdraw-hold" }
+    });
+    const published = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/publish`,
+      payload: { releaseMode: "full_batch", idempotencyKey: "results-withdraw-publish" }
+    });
+    expect(published.statusCode).toBe(200);
+    const withdrawn = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/results/${held.json().decision.decisionId}/withdraw`,
+      payload: {
+        reason: "Publication withdrawn during lower-env integration verification.",
+        idempotencyKey: "results-withdraw-command"
+      }
+    });
+    expect(withdrawn.statusCode).toBe(200);
+    expect(withdrawn.json().decision.status).toBe("WITHDRAWN");
+    expect(withdrawn.json().publicMapEvent).toMatchObject({ eventType: "award_withdrawn", payload: { published: false } });
+    const applicant = await app.inject({ method: "GET", url: `/api/v1/applicant/results/${episode.episodeId}` });
+    expect(applicant.statusCode).toBe(200);
+    expect(applicant.json()).toMatchObject({ status: "withdrawn", displayLabel: "Result withdrawn" });
+    const cache = await pool.query<{ count: string }>("SELECT count(*) FROM park_award_cache WHERE park_id = $1", [episode.parkId]);
+    expect(cache.rows[0]?.count).toBe("0");
+  });
+
+  it("writes audit events for converted notification dispatch and renewal reminder commands", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const notificationId = randomUUID();
+    await pool.query(
+      `
+        INSERT INTO notification_queue (
+          id, template_key, channel, recipient_actor_id, recipient_address_marker,
+          status, related_entity_type, related_entity_id, created_at_utc, updated_at_utc
+        )
+        VALUES ($1, 'integration_dispatch', 'email', $2, 'provider_address_deferred', 'QUEUED', 'integration_test', $3, now(), now())
+      `,
+      [notificationId, globalAdminSessionFixture.actor.actorId, notificationId]
+    );
+
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, ledger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const dispatch = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/notifications/${notificationId}/dispatch-stub`
+    });
+    expect(dispatch.statusCode).toBe(200);
+
+    const reminders = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/jobs/renewal-reminders/run",
+      payload: {
+        cycleYear: lowerEnvironmentAwardCycle2026Fixture.cycleYear,
+        idempotencyKey: "communications-renewal-audit-positive"
+      }
+    });
+    expect(reminders.statusCode).toBe(200);
+    const jobRunId = reminders.json().jobRun.jobRunId;
+
+    const dispatchAudit = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM audit_events WHERE entity_id = $1 AND action = 'DISPATCH_NOTIFICATION_STUB'",
+      [notificationId]
+    );
+    expect(dispatchAudit.rows[0]?.count).toBe("1");
+
+    const reminderAudit = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM audit_events WHERE entity_id = $1 AND action = 'RUN_RENEWAL_REMINDERS'",
+      [jobRunId]
+    );
+    expect(reminderAudit.rows[0]?.count).toBe("1");
+  });
+
+  it("suppresses renewal reminder and export duplicates on retry", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const ledger = new PostgresAuditLedger(pool, unitOfWork);
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, ledger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: ledger,
+      productionLike: true
+    });
+
+    const remindersA = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/jobs/renewal-reminders/run",
+      payload: {
+        cycleYear: 2120,
+        idempotencyKey: "communications-renewal-retry"
+      }
+    });
+    const remindersB = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/jobs/renewal-reminders/run",
+      payload: {
+        cycleYear: 2120,
+        idempotencyKey: "communications-renewal-retry"
+      }
+    });
+    expect(remindersA.statusCode).toBe(200);
+    expect(remindersB.statusCode).toBe(200);
+    expect(remindersB.json().jobRun.jobRunId).toBe(remindersA.json().jobRun.jobRunId);
+    expect(remindersB.json().queuedNotifications[0].notificationId).toBe(remindersA.json().queuedNotifications[0].notificationId);
+    const reminderRows = await Promise.all([
+      pool.query<{ count: string }>("SELECT count(*) FROM job_runs WHERE dedupe_key = $1", ["renewal_reminders:job:idempotency:communications-renewal-retry"]),
+      pool.query<{ count: string }>("SELECT count(*) FROM notification_queue WHERE dedupe_key = $1", ["renewal_reminders:notification:idempotency:communications-renewal-retry"])
+    ]);
+    expect(reminderRows[0].rows[0]?.count).toBe("1");
+    expect(reminderRows[1].rows[0]?.count).toBe("1");
+
+    const exportA = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/exports",
+      payload: {
+        exportType: "payments",
+        format: "csv",
+        idempotencyKey: "communications-export-retry"
+      }
+    });
+    const exportB = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/exports",
+      payload: {
+        exportType: "payments",
+        format: "csv",
+        idempotencyKey: "communications-export-retry"
+      }
+    });
+    expect(exportA.statusCode).toBe(200);
+    expect(exportB.statusCode).toBe(200);
+    expect(exportB.json().exportJob.exportId).toBe(exportA.json().exportJob.exportId);
+    const exportRows = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM export_jobs WHERE dedupe_key = $1",
+      [`export:${globalAdminSessionFixture.actor.actorId}:payments:csv:communications-export-retry`]
+    );
+    expect(exportRows.rows[0]?.count).toBe("1");
+    const financeExportRows = await pool.query<{ count: string; export_type: string; status: string }>(
+      `
+        SELECT count(*)::text AS count, max(export_type) AS export_type, max(status) AS status
+        FROM finance_export_runs
+        WHERE export_job_id = $1
+      `,
+      [exportA.json().exportJob.exportId]
+    );
+    expect(financeExportRows.rows[0]).toMatchObject({
+      count: "1",
+      export_type: "payment_csv",
+      status: "generated"
+    });
+  });
+
+  it("rolls back dispatch-stub notification and log rows when audit append fails", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const notificationId = randomUUID();
+    const failingLedger = {
+      async append() {
+        throw new Error("forced dispatch audit failure");
+      }
+    };
+    await pool.query(
+      `
+        INSERT INTO notification_queue (
+          id, template_key, channel, recipient_actor_id, recipient_address_marker,
+          status, related_entity_type, related_entity_id, created_at_utc, updated_at_utc
+        )
+        VALUES ($1, 'integration_dispatch_rollback', 'email', $2, 'provider_address_deferred', 'QUEUED', 'integration_test', $3, now(), now())
+      `,
+      [notificationId, globalAdminSessionFixture.actor.actorId, notificationId]
+    );
+
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, failingLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: failingLedger,
+      productionLike: true
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: `/api/v1/admin/notifications/${notificationId}/dispatch-stub`
+    });
+    expect(response.statusCode).toBe(500);
+
+    const notification = await pool.query<{ status: string }>("SELECT status FROM notification_queue WHERE id = $1", [notificationId]);
+    expect(notification.rows[0]?.status).toBe("QUEUED");
+    const logs = await pool.query<{ count: string }>("SELECT count(*) FROM notification_logs WHERE notification_id = $1", [notificationId]);
+    expect(logs.rows[0]?.count).toBe("0");
+  });
+
+  it("rolls back renewal reminder notification and job rows when audit append fails", async () => {
+    const unitOfWork = createUnitOfWork(pool);
+    const failingLedger = {
+      async append() {
+        throw new Error("forced renewal audit failure");
+      }
+    };
+
+    const app = buildApp({
+      communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, failingLedger),
+      resolveSession: async () => globalAdminSessionFixture,
+      auditLedger: failingLedger,
+      productionLike: true
+    });
+    const notificationsBefore = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM notification_queue WHERE template_key = 'renewal_reminder' AND recipient_actor_id = $1 AND related_entity_type = 'award_cycle'",
+      [globalAdminSessionFixture.actor.actorId]
+    );
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/v1/admin/jobs/renewal-reminders/run",
+      payload: {
+        cycleYear: 2099,
+        idempotencyKey: "communications-renewal-audit-rollback"
+      }
+    });
+    expect(response.statusCode).toBe(500);
+
+    const notifications = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM notification_queue WHERE template_key = 'renewal_reminder' AND recipient_actor_id = $1 AND related_entity_type = 'award_cycle'",
+      [globalAdminSessionFixture.actor.actorId]
+    );
+    expect(notifications.rows[0]?.count).toBe(notificationsBefore.rows[0]?.count);
+    const jobs = await pool.query<{ count: string }>(
+      "SELECT count(*) FROM job_runs WHERE job_type = 'renewal_reminders' AND detail = 'Lower-env renewal reminder queue run for 2099.'"
+    );
+    expect(jobs.rows[0]?.count).toBe("0");
   });
 
   it("rolls back audit and domain work in one UnitOfWork transaction", async () => {

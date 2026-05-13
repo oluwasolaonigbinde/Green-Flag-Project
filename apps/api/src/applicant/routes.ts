@@ -16,6 +16,7 @@ import {
   completeDocumentUploadResponseSchema,
   createApplicationRequestSchema,
   createDocumentUploadSessionRequestSchema,
+  documentAssetSchema,
   documentChunkAcknowledgementSchema,
   documentUploadSessionSchema,
   documentVersionsResponseSchema,
@@ -494,7 +495,10 @@ export function registerApplicantRoutes(
         );
         return completeDocumentUploadResponseSchema.parse({
           applicationId: application.applicationId,
-          document: duplicate,
+          document: {
+            ...duplicate,
+            signedAccessAvailable: duplicate.visibility !== "ADMIN_ONLY" && duplicate.visibility !== "MYSTERY_RESTRICTED"
+          },
           duplicateOfDocumentId: duplicate.documentId
         });
       });
@@ -507,7 +511,7 @@ export function registerApplicantRoutes(
         document.isCurrent
     );
     const documentId = randomUUID();
-    const created = completeDocumentUploadResponseSchema.shape.document.parse({
+    const created = documentAssetSchema.parse({
       documentId,
       applicationId: application.applicationId,
       episodeId: application.episodeId,
@@ -563,7 +567,10 @@ export function registerApplicantRoutes(
 
       return completeDocumentUploadResponseSchema.parse({
         applicationId: application.applicationId,
-        document: created,
+        document: {
+          ...created,
+          signedAccessAvailable: true
+        },
         archivedDocumentId: previousCurrent?.documentId
       });
     });
@@ -575,24 +582,12 @@ export function registerApplicantRoutes(
     if (repository) {
       const application = await repository.getApplication(params.applicationId) as { parkId: string };
       requireApplicantResourceAccess(session, await repository.getOwnershipForPark(application.parkId));
-      const document = await repository.getDocument(params) as {
-        documentId: string;
-        filename: string;
-        contentType: string;
-        visibility: string;
-      };
-      if (document.visibility === "MYSTERY_RESTRICTED" || document.visibility === "ADMIN_ONLY") {
-        throw new ApiError("forbidden", 403, "Document is not visible to the applicant.");
-      }
-      return redactSignedDocumentAccessForSession(signedDocumentAccessResponseSchema.parse({
-        documentId: document.documentId,
-        method: "GET",
-        url: `https://lower-env-storage.invalid/download/${document.documentId}`,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        filename: document.filename,
-        contentType: document.contentType,
-        visibility: document.visibility
-      }), session);
+      return redactSignedDocumentAccessForSession(await repository.requestSignedDocumentAccess({
+        applicationId: params.applicationId,
+        documentId: params.documentId,
+        actor: session.actor,
+        request
+      }) as never, session);
     }
     if (!store) throw new ApiError("dependency_missing", 503, "Applicant persistence is not configured.");
     const application = requireApplication(store, params.applicationId);
@@ -606,7 +601,7 @@ export function registerApplicantRoutes(
       throw new ApiError("forbidden", 403, "Document is not visible to the applicant.");
     }
 
-    return redactSignedDocumentAccessForSession(signedDocumentAccessResponseSchema.parse({
+    const response = signedDocumentAccessResponseSchema.parse({
       documentId: document.documentId,
       method: "GET",
       url: `https://lower-env-storage.invalid/download/${document.documentId}`,
@@ -614,7 +609,24 @@ export function registerApplicantRoutes(
       filename: document.filename,
       contentType: document.contentType,
       visibility: document.visibility
-    }), session);
+    });
+    await audit(buildAuditEvent({
+      action: "DOCUMENT_ACCESS_REQUESTED",
+      entityType: "document",
+      entityId: document.documentId,
+      actor: session.actor,
+      request: requestMetadata(request),
+      afterState: {
+        applicationId: application.applicationId,
+        documentId: document.documentId,
+        episodeId: application.episodeId,
+        parkId: application.parkId,
+        documentType: document.documentType,
+        visibility: document.visibility,
+        accessDecision: "signed_access_issued"
+      }
+    }));
+    return redactSignedDocumentAccessForSession(response, session);
   });
 
   app.get("/api/v1/applicant/applications/:applicationId/documents/:documentId/versions", async (request) => {
@@ -644,6 +656,10 @@ export function registerApplicantRoutes(
             candidate.documentType === document.documentType
         )
         .sort((left, right) => right.version - left.version)
+        .map((candidate) => ({
+          ...candidate,
+          signedAccessAvailable: candidate.visibility !== "ADMIN_ONLY" && candidate.visibility !== "MYSTERY_RESTRICTED"
+        }))
     });
   });
 

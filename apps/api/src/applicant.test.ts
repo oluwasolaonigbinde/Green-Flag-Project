@@ -153,7 +153,12 @@ describe("applicant dashboard and application draft slice api", () => {
       documentCompletionStatus: "complete"
     });
     expect(response.json().slots[0].currentDocument.filename).toContain("management-plan");
-    expect(JSON.stringify(response.json())).not.toContain("MYSTERY_SHOP");
+    const payload = JSON.stringify(response.json());
+    expect(payload).not.toContain("MYSTERY_SHOP");
+    expect(payload).not.toContain("storageProvider");
+    expect(payload).not.toContain("storageKey");
+    expect(payload).not.toContain("uploadedByActorId");
+    expect(payload).not.toContain("lower-env/applications");
   });
 
   it("creates a chunked upload session, accepts chunks, and completes a replacement", async () => {
@@ -229,6 +234,8 @@ describe("applicant dashboard and application draft slice api", () => {
       isCurrent: true,
       status: "AVAILABLE"
     });
+    expect(JSON.stringify(completed.json())).not.toContain("storageKey");
+    expect(JSON.stringify(completed.json())).not.toContain("storageProvider");
     expect(completed.json().archivedDocumentId).toBe(currentManagementPlanDocumentFixture.documentId);
     expect(store.audits.map((event) => event.action)).toEqual(
       expect.arrayContaining([
@@ -256,6 +263,38 @@ describe("applicant dashboard and application draft slice api", () => {
       visibility: "APPLICANT_AND_ADMIN"
     });
     expect(response.json().url).toContain("lower-env-storage.invalid");
+    expect(JSON.stringify(response.json())).not.toContain("storageKey");
+  });
+
+  it("audits signed document access and fails closed when audit append fails", async () => {
+    const store = createApplicantStore();
+    const app = buildApp({
+      applicantStore: store,
+      resolveSession: async () => parkManagerSessionFixture
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/v1/applicant/applications/${applicationDraftFixture.applicationId}/documents/${currentManagementPlanDocumentFixture.documentId}/access`
+    });
+    expect(response.statusCode).toBe(200);
+    expect(store.audits.filter((event) => event.action === "DOCUMENT_ACCESS_REQUESTED")).toHaveLength(1);
+    expect(JSON.stringify(store.audits.at(-1))).not.toContain("storageKey");
+
+    const failing = buildApp({
+      applicantStore: createApplicantStore(),
+      resolveSession: async () => parkManagerSessionFixture,
+      auditLedger: {
+        async append() {
+          throw new Error("audit unavailable");
+        }
+      }
+    });
+    const failed = await failing.inject({
+      method: "GET",
+      url: `/api/v1/applicant/applications/${applicationDraftFixture.applicationId}/documents/${currentManagementPlanDocumentFixture.documentId}/access`
+    });
+    expect(failed.statusCode).toBe(500);
   });
 
   it("submits an application, creates an invoice shell, and exposes payment summary", async () => {
@@ -396,6 +435,7 @@ describe("applicant dashboard and application draft slice api", () => {
     const store = createApplicantStore();
     const wrongParkSession = structuredClone(parkManagerSessionFixture);
     wrongParkSession.actor.scopes = [{ type: "PARK", id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }];
+    wrongParkSession.roleAssignments[0]!.scope = wrongParkSession.actor.scopes[0]!;
 
     const deniedPark = buildApp({
       applicantStore: store,
@@ -410,6 +450,8 @@ describe("applicant dashboard and application draft slice api", () => {
     const orgSession = structuredClone(parkManagerSessionFixture);
     orgSession.actor.role = "ORG_ADMIN";
     orgSession.actor.scopes = [{ type: "ORGANISATION", id: lowerEnvironmentOrganisationFixture.id }];
+    orgSession.roleAssignments[0]!.role = "ORG_ADMIN";
+    orgSession.roleAssignments[0]!.scope = orgSession.actor.scopes[0]!;
     const allowedOrg = buildApp({
       applicantStore: store,
       resolveSession: async () => orgSession
@@ -422,6 +464,7 @@ describe("applicant dashboard and application draft slice api", () => {
 
     const wrongOrgSession = structuredClone(orgSession);
     wrongOrgSession.actor.scopes = [{ type: "ORGANISATION", id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" }];
+    wrongOrgSession.roleAssignments[0]!.scope = wrongOrgSession.actor.scopes[0]!;
     const deniedOrg = buildApp({
       applicantStore: store,
       resolveSession: async () => wrongOrgSession

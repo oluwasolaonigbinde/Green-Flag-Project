@@ -12,6 +12,8 @@ const app = buildApp(runtime
       assessorRepository: runtime.assessorRepository,
       allocationRepository: runtime.allocationRepository,
       assessmentRepository: runtime.assessmentRepository,
+      communicationsRepository: runtime.communicationsRepository,
+      resultsRepository: runtime.resultsRepository,
       registrationStore: runtime.stores.registrationStore,
       applicantStore: runtime.stores.applicantStore,
       assessorStore: runtime.stores.assessorStore,

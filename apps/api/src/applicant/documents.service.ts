@@ -45,7 +45,12 @@ export function applicationDocuments(store: ApplicantStore, application: Applica
 
       return {
         ...slot,
-        currentDocument: currentManagementPlan,
+        currentDocument: currentManagementPlan
+          ? {
+              ...currentManagementPlan,
+              signedAccessAvailable: currentManagementPlan.visibility !== "ADMIN_ONLY" && currentManagementPlan.visibility !== "MYSTERY_RESTRICTED"
+            }
+          : undefined,
         completionStatus: currentManagementPlan?.status === "AVAILABLE" ? "uploaded" : "missing",
         archivedVersionCount: archivedManagementPlans.length
       };

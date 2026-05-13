@@ -8,7 +8,7 @@ import {
   judgeAssessmentResponseSchema,
   type AssignmentStatus
 } from "@green-flag/contracts";
-import { canAccessResource, type ResourceOwnership } from "../authorization.js";
+import { hasRoleAssignmentForResource, requireMutationAllowed, type ResourceOwnership } from "../authorization.js";
 import { ApiError, appendAuditEvent, type AuditEvent, type AuditLedger, type SessionProfile } from "../auth.js";
 import { iso } from "./shared.js";
 
@@ -82,13 +82,13 @@ function syntheticAssessmentIdForAssignment(assignmentId: string) {
 }
 
 function ensureJudge(session: SessionProfile) {
-  if (session.actor.role !== "JUDGE") {
+  if (!session.roleAssignments.some((assignment) => assignment.status === "ACTIVE" && assignment.role === "JUDGE")) {
     throw new ApiError("forbidden", 403, "Assessment access requires judge role.");
   }
 }
 
 function ensureAdminAccess(session: SessionProfile, ownership: ResourceOwnership) {
-  if (!canAccessResource(session, ownership)) {
+  if (!hasRoleAssignmentForResource(session, ownership, ["SUPER_ADMIN", "KBT_ADMIN"])) {
     throw new ApiError("forbidden", 403, "Actor is not allowed to access this episode.");
   }
 }
@@ -364,6 +364,7 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
   }
 
   async scheduleVisit({ assignmentId, body, session, request }: Parameters<AssessmentRepository["scheduleVisit"]>[0]) {
+    requireMutationAllowed(session);
     return this.unitOfWork.run(async ({ client }) => {
       const access = await loadAssignmentAccess(client, session, assignmentId, true);
       assertAccepted(access);
@@ -437,6 +438,7 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
   }
 
   async updateScores({ assessmentId, body, session, request }: Parameters<AssessmentRepository["updateScores"]>[0]) {
+    requireMutationAllowed(session);
     return this.unitOfWork.run(async ({ client }) => {
       const access = await loadAccessForAssessment(client, session, assessmentId, true);
       assertAccepted(access);
@@ -488,6 +490,7 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
   }
 
   async addEvidence({ assessmentId, body, session, request }: Parameters<AssessmentRepository["addEvidence"]>[0]) {
+    requireMutationAllowed(session);
     return this.unitOfWork.run(async ({ client }) => {
       const access = await loadAccessForAssessment(client, session, assessmentId, true);
       assertAccepted(access);
@@ -522,6 +525,7 @@ export class PostgresAssessmentRepository implements AssessmentRepository {
   }
 
   async submit({ assessmentId, body, session, request }: Parameters<AssessmentRepository["submit"]>[0]) {
+    requireMutationAllowed(session);
     return this.unitOfWork.run(async ({ client }) => {
       const access = await loadAccessForAssessment(client, session, assessmentId, true);
       assertAccepted(access);

@@ -12,7 +12,8 @@
     "openapi:check": "node scripts/check-openapi.mjs",
     "db:migrate:check": "corepack pnpm --filter @green-flag/db migrate:check",
     "db:seed:check": "corepack pnpm --filter @green-flag/db seed:check",
-    "db:integration:test": "node scripts/run-db-integration.mjs"
+    "db:integration:test": "node scripts/run-db-integration.mjs",
+    "db:migration:apply:check": "corepack pnpm --filter @green-flag/db build && node scripts/check-clean-migration-apply.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",

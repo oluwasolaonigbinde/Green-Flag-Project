@@ -90,8 +90,8 @@ export function collectProductionRuntimeSafetyIssues({
   if (databaseConfigured && !dbFirstRepositoriesConfigured) {
     issues.push({
       code: "canonical_mutable_postgres_hydrated_stores",
-      component: "registration/applicant/document/payment/allocation/assessor persistence",
-      detail: "Production/staging registration, applicant, document, payment, allocation, or assessor routes would use mutable PostgreSQL-hydrated Map stores as canonical persistence.",
+      component: "registration/applicant/document/payment/allocation/assessor/assessment/results/communications persistence",
+      detail: "Production/staging registration, applicant, document, payment, allocation, assessor, assessment, results, or communications routes would use mutable PostgreSQL-hydrated Map stores as canonical persistence.",
       action: "Wire DB-first repositories for these route families; Map-backed stores are allowed only in explicit local/test/lower-env modes."
     });
   }

@@ -204,6 +204,7 @@ describe("admin read models and operational queues", () => {
 
     const wrongCountry = structuredClone(scopedAdminSessionFixture);
     wrongCountry.actor.scopes = [{ type: "COUNTRY", id: "wrong-country-scope" }];
+    wrongCountry.roleAssignments[0]!.scope = wrongCountry.actor.scopes[0]!;
     const denied = buildApp({
       applicantStore,
       registrationStore,

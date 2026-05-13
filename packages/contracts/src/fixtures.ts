@@ -17,6 +17,7 @@ import {
   completeDocumentUploadResponseSchema,
   contractMetadataResponseSchema,
   cycleWindowSchema,
+  documentAssetSchema,
   documentChunkAcknowledgementSchema,
   documentUploadSessionSchema,
   documentVersionsResponseSchema,
@@ -243,7 +244,7 @@ export const previousFeedbackResponseDraftFixture = previousFeedbackResponseDraf
   updatedAt: "2026-05-05T00:02:00Z"
 });
 
-export const currentManagementPlanDocumentFixture = completeDocumentUploadResponseSchema.shape.document.parse({
+export const currentManagementPlanDocumentFixture = documentAssetSchema.parse({
   documentId: "15151515-1515-4151-8151-151515151515",
   applicationId: applicationDraftFixture.applicationId,
   episodeId: applicationDraftFixture.episodeId,
@@ -266,7 +267,7 @@ export const currentManagementPlanDocumentFixture = completeDocumentUploadRespon
   updatedAt: "2026-05-05T00:03:00Z"
 });
 
-export const archivedManagementPlanDocumentFixture = completeDocumentUploadResponseSchema.shape.document.parse({
+export const archivedManagementPlanDocumentFixture = documentAssetSchema.parse({
   documentId: "14141414-1414-4141-8141-141414141414",
   applicationId: applicationDraftFixture.applicationId,
   episodeId: applicationDraftFixture.episodeId,
@@ -300,7 +301,10 @@ export const applicationDocumentsFixture = applicationDocumentsResponseSchema.pa
       required: true,
       label: "Management plan",
       completionStatus: "uploaded",
-      currentDocument: currentManagementPlanDocumentFixture,
+      currentDocument: {
+        ...currentManagementPlanDocumentFixture,
+        signedAccessAvailable: true
+      },
       archivedVersionCount: 1,
       allowedActions: ["create_upload_session", "replace_document", "download_document"]
     },
@@ -342,7 +346,10 @@ export const documentChunkAcknowledgementFixture = documentChunkAcknowledgementS
 
 export const completeDocumentUploadFixture = completeDocumentUploadResponseSchema.parse({
   applicationId: applicationDraftFixture.applicationId,
-  document: currentManagementPlanDocumentFixture,
+  document: {
+    ...currentManagementPlanDocumentFixture,
+    signedAccessAvailable: true
+  },
   archivedDocumentId: archivedManagementPlanDocumentFixture.documentId
 });
 
@@ -359,7 +366,10 @@ export const signedDocumentAccessFixture = signedDocumentAccessResponseSchema.pa
 export const documentVersionsFixture = documentVersionsResponseSchema.parse({
   applicationId: applicationDraftFixture.applicationId,
   documentType: "management_plan",
-  versions: [currentManagementPlanDocumentFixture, archivedManagementPlanDocumentFixture]
+  versions: [
+    { ...currentManagementPlanDocumentFixture, signedAccessAvailable: true },
+    { ...archivedManagementPlanDocumentFixture, signedAccessAvailable: true }
+  ]
 });
 
 export const pendingInvoiceFixture = applicationSubmissionResponseSchema.shape.invoice.parse({
@@ -1423,8 +1433,7 @@ export const applicantResultPublishedFixture = applicantResultResponseSchema.par
   displayLabel: "Award published",
   certificate: {
     certificateId: resultPublishedFixture.decision.certificateId!,
-    downloadAvailable: true,
-    storageProvider: "lower_env_stub"
+    downloadAvailable: true
   }
 });
 

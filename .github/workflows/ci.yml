@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: green_flag_ci
+          POSTGRES_USER: green_flag
+          POSTGRES_PASSWORD: green_flag_local_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U green_flag -d green_flag_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+
+    env:
+      TEST_DATABASE_URL: postgres://green_flag:green_flag_local_only@127.0.0.1:5432/green_flag_ci
+      ALLOW_MIGRATION_APPLY_TO_TEST_DATABASE: "true"
+      CI: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: corepack pnpm lint
+
+      - name: Unit tests
+        run: corepack pnpm test
+
+      - name: DB integration tests
+        run: corepack pnpm exec vitest run apps/api/src/postgres-domain-stores.integration.test.ts
+
+      - name: API typecheck
+        run: corepack pnpm --filter @green-flag/api typecheck
+
+      - name: DB typecheck
+        run: corepack pnpm --filter @green-flag/db typecheck
+
+      - name: Migration convention check
+        run: corepack pnpm db:migrate:check
+
+      - name: Seed safety check
+        run: corepack pnpm db:seed:check
+
+      - name: Contract check
+        run: corepack pnpm contracts:check
+
+      - name: OpenAPI check
+        run: corepack pnpm openapi:check
+
+      - name: Clean migration apply check
+        run: corepack pnpm db:migration:apply:check

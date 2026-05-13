@@ -527,12 +527,30 @@ export const documentAssetSchema = z.object({
   updatedAt: isoDateTimeSchema
 });
 
+export const applicantDocumentAssetSchema = z.object({
+  documentId: uuidSchema,
+  documentType: documentTypeSchema,
+  filename: z.string().min(1),
+  contentType: z.string().min(1),
+  byteSize: z.number().int().min(1).max(52_428_800),
+  status: documentAssetStatusSchema,
+  visibility: documentVisibilitySchema,
+  version: z.number().int().min(1),
+  isCurrent: z.boolean(),
+  replacesDocumentId: uuidSchema.optional(),
+  replacedByDocumentId: uuidSchema.optional(),
+  scanStatus: z.enum(["not_scanned_stub", "pending_stub", "clean_stub", "rejected_stub"]),
+  signedAccessAvailable: z.boolean(),
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema
+});
+
 export const applicationDocumentSlotSchema = z.object({
   documentType: documentTypeSchema,
   required: z.boolean(),
   label: z.string().min(1),
   completionStatus: z.enum(["missing", "uploaded", "pending_scan", "rejected"]),
-  currentDocument: documentAssetSchema.optional(),
+  currentDocument: applicantDocumentAssetSchema.optional(),
   archivedVersionCount: z.number().int().min(0),
   allowedActions: z.array(z.enum(["create_upload_session", "replace_document", "download_document"]))
 });
@@ -596,7 +614,7 @@ export const completeDocumentUploadRequestSchema = z.object({
 
 export const completeDocumentUploadResponseSchema = z.object({
   applicationId: uuidSchema,
-  document: documentAssetSchema,
+  document: applicantDocumentAssetSchema,
   duplicateOfDocumentId: uuidSchema.optional(),
   archivedDocumentId: uuidSchema.optional()
 });
@@ -614,7 +632,7 @@ export const signedDocumentAccessResponseSchema = z.object({
 export const documentVersionsResponseSchema = z.object({
   applicationId: uuidSchema,
   documentType: documentTypeSchema,
-  versions: z.array(documentAssetSchema)
+  versions: z.array(applicantDocumentAssetSchema)
 });
 
 export const purchaseOrderPreferenceSchema = z.object({
@@ -1292,8 +1310,7 @@ export const applicantResultResponseSchema = z.object({
   displayLabel: z.string().min(1).optional(),
   certificate: z.object({
     certificateId: uuidSchema,
-    downloadAvailable: z.literal(true),
-    storageProvider: z.literal("lower_env_stub")
+    downloadAvailable: z.literal(true)
   }).optional()
 });
 
@@ -1361,6 +1378,24 @@ export const messageEntrySchema = z.object({
   createdAt: isoDateTimeSchema
 });
 
+export const applicantMessageThreadSchema = z.object({
+  threadId: uuidSchema,
+  episodeId: uuidSchema.optional(),
+  parkId: uuidSchema.optional(),
+  subject: z.string().min(1),
+  status: messageThreadStatusSchema,
+  createdAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema
+});
+
+export const applicantMessageEntrySchema = z.object({
+  messageId: uuidSchema,
+  threadId: uuidSchema,
+  body: z.string().min(1).max(5000),
+  createdAt: isoDateTimeSchema,
+  sentByCurrentActor: z.boolean()
+});
+
 export const createMessageThreadRequestSchema = z.object({
   episodeId: uuidSchema.optional(),
   parkId: uuidSchema.optional(),
@@ -1374,9 +1409,20 @@ export const messageThreadsResponseSchema = z.object({
   messages: z.array(messageEntrySchema)
 });
 
+export const applicantMessageThreadsResponseSchema = z.object({
+  threads: z.array(applicantMessageThreadSchema),
+  messages: z.array(applicantMessageEntrySchema)
+});
+
 export const messageCommandResponseSchema = z.object({
   thread: messageThreadSchema,
   message: messageEntrySchema,
+  auditEventId: uuidSchema
+});
+
+export const applicantMessageCommandResponseSchema = z.object({
+  thread: applicantMessageThreadSchema,
+  message: applicantMessageEntrySchema,
   auditEventId: uuidSchema
 });
 

@@ -55,6 +55,33 @@ describe("API production runtime safety guardrails", () => {
     expect(issues.map((issue) => issue.code)).toContain("canonical_mutable_postgres_hydrated_stores");
   });
 
+  it("blocks lower-env providers and mutable stores across every production-like mode", () => {
+    const modes = [
+      { NODE_ENV: "production" },
+      { API_RUNTIME_MODE: "staging" },
+      { API_RUNTIME_MODE: "production" }
+    ];
+    for (const env of modes) {
+      const issues = collectProductionRuntimeSafetyIssues({
+        env,
+        databaseConfigured: true,
+        dbFirstRepositoriesConfigured: false
+      });
+      expect(issues.map((issue) => issue.code)).toEqual(expect.arrayContaining([
+        "canonical_mutable_postgres_hydrated_stores",
+        "lower_env_fixture_provider",
+        "lower_env_storage_provider",
+        "lower_env_notification_dispatcher",
+        "lower_env_export_provider",
+        "fake_contact_provider",
+        "lower_env_payment_provider",
+        "missing_production_invoice_configuration"
+      ]));
+      expect(issues.find((issue) => issue.code === "lower_env_storage_provider")?.detail).toMatch(/certificate/i);
+      expect(issues.find((issue) => issue.code === "lower_env_storage_provider")?.detail).toMatch(/result/i);
+    }
+  });
+
   it("allows explicit manual MVP payment mode without enabling fake invoice generation", () => {
     const issues = collectProductionRuntimeSafetyIssues({
       env: { API_RUNTIME_MODE: "production", PAYMENT_RUNTIME_MODE: "manual_mvp" },

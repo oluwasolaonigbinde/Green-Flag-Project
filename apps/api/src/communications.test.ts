@@ -114,10 +114,10 @@ describe("notifications messaging jobs exports slice api", () => {
       }
     });
     expect(response.statusCode).toBe(200);
-    expect(response.json().thread).toMatchObject({
-      status: "SUPPRESSED",
-      visibleToApplicant: false
-    });
+    expect(response.json().thread.status).toBe("SUPPRESSED");
+    expect(JSON.stringify(response.json())).not.toContain("visibleToApplicant");
+    expect(JSON.stringify(response.json())).not.toContain("participantActorIds");
+    expect(JSON.stringify(response.json())).not.toContain("senderActorId");
 
     const listing = await app.inject({ method: "GET", url: "/api/v1/applicant/messages" });
     expect(listing.statusCode).toBe(200);

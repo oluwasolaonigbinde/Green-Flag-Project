@@ -1,5 +1,7 @@
 # Green Flag Award executable slice backlog
-# Only this file selects the next production slice. Keep detailed scope in slice contracts.
+# Backend slice build is complete. Future normal work is driven by system_state.md,
+# frontend/devops handoff docs, gap-register.md, and external-configuration-register.md.
+# Keep this file as historical build sequencing and UI reopen reference.
 # Valid status values: TODO, CONTRACT_REVIEW, IN_PROGRESS, DONE_BACKEND, DONE_FULL, REOPENED_FOR_UI, BLOCKED
 
 workflow:
@@ -146,62 +148,72 @@ slices:
   - id: 9
     slug: allocation-workflow-candidates-coi-release-acceptance
     title: Allocation workflow: candidates, COI, hold/release, and acceptance
-    status: CONTRACT_REVIEW
+    status: DONE_FULL
     depends_on: [6, 8, 8.5, 8.6]
     purpose: Deliver candidate queries, source-backed hard/soft COI handling, rotation flags, configurable suggested/final judge count, assignment participants, hold/release, accept/decline, reassignment, and contact reveal rules from REQ-ALO/architecture source truth.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S09-allocation-workflow-candidates-coi-release-acceptance.md
+    delivery_record_path: docs/implementation/delivery-records/S09-allocation-workflow-candidates-coi-release-acceptance-delivery.md
 
   - id: 10
     slug: mystery-redaction-hardening
     title: Mystery Shop redaction hardening
-    status: TODO
+    status: DONE_FULL
     depends_on: [2, 4, 7, 9]
     purpose: Centralize and test Mystery redaction across applicant/org APIs, read models, notifications, documents, messages, exports, search, status labels, and public surfaces.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S10-mystery-redaction-hardening.md
+    delivery_record_path: docs/implementation/delivery-records/S10-mystery-redaction-hardening-delivery.md
 
   - id: 11
     slug: visits-assessment-scoring-framework
     title: Visits and configurable assessment/scoring framework
-    status: TODO
+    status: DONE_FULL
     depends_on: [9, 10]
     purpose: Deliver site visits, configurable assessment templates/criteria/subcriteria/bands placeholders, score entries, evidence, offline sync contracts, threshold calculation, and judge assessment flows.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S11-visits-assessment-scoring-framework.md
+    delivery_record_path: docs/implementation/delivery-records/S11-visits-assessment-scoring-framework-delivery.md
 
   - id: 12
     slug: decisions-results-certificates-public-map-events
     title: Decisions, result publication, certificates, and public map events
-    status: TODO
+    status: DONE_FULL
     depends_on: [11]
     purpose: Deliver decision_results, threshold acknowledgements, Full batch release, Mystery publish, result artifacts, certificate shell, derived park award cache, and public_map_update_events.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S12-decisions-results-certificates-public-map-events.md
+    delivery_record_path: docs/implementation/delivery-records/S12-decisions-results-certificates-public-map-events-delivery.md
+
+  - id: 12.5
+    slug: postgres-read-model-normalisation-hardening
+    title: PostgreSQL read-model normalisation and runtime payload hardening
+    status: DONE_FULL
+    depends_on: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    purpose: After S12 stabilises the end-to-end domain, promote frequently queried authoritative fields into relational columns/child tables and add performance/index/rollback tests for production read paths.
+    frontend_reopen_allowed: false
+    contract_path: docs/implementation/slice-contracts/S12.5-postgres-read-model-normalisation-hardening.md
+    delivery_record_path: docs/implementation/delivery-records/S12.5-postgres-read-model-normalisation-hardening-delivery.md
 
   - id: 13
     slug: notifications-messaging-jobs-exports-reminders
     title: Notifications, messaging, jobs, exports, and renewal reminders
-    status: TODO
-    depends_on: [3, 6, 9, 12]
+    status: DONE_FULL
+    depends_on: [3, 6, 9, 12, 12.5]
     purpose: Deliver template versions, notification queue/log, email/SMS adapter boundary, suppression logs, message threads, job runs, renewal reminder jobs, and generic data exports.
     frontend_reopen_allowed: true
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S13-notifications-messaging-jobs-exports-reminders.md
+    delivery_record_path: docs/implementation/delivery-records/S13-notifications-messaging-jobs-exports-reminders-delivery.md
 
   - id: 14
     slug: hardening-uat-migration-performance-security
     title: Hardening, UAT readiness, migration, performance, and security review
-    status: TODO
-    depends_on: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    status: DONE_FULL
+    depends_on: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12.5, 13]
     purpose: Complete permission tests, Mystery leakage tests, migration dry runs, load/performance/security checks, seed data review, monitoring hooks, UAT readiness, and launch confidence.
     frontend_reopen_allowed: false
-    contract_path: null
-    delivery_record_path: null
+    contract_path: docs/implementation/slice-contracts/S14-hardening-uat-migration-performance-security.md
+    delivery_record_path: docs/implementation/delivery-records/S14-hardening-uat-migration-performance-security-delivery.md
 
 # Optional demo accelerants are not selected by the normal next_slice_policy.
 # Activate manually only if client/demo pressure requires it.

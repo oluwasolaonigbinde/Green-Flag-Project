@@ -9,8 +9,7 @@ import {
   assessorAssignmentDecisionResponseSchema,
   assessorAssignmentsResponseSchema,
   lowerEnvironmentAwardCycle2026Fixture,
-  lowerEnvironmentParkFixture,
-  type AssignmentStatus
+  lowerEnvironmentParkFixture
 } from "@green-flag/contracts";
 import { canAccessResource, type ResourceOwnership } from "../authorization.js";
 import { ApiError, appendAuditEvent, type AuditEvent, type AuditLedger, type SessionProfile } from "../auth.js";
@@ -19,7 +18,6 @@ import { flushAdminOverrideEvents } from "./overrides.js";
 import { iso } from "./shared.js";
 
 type Allocation = ReturnType<typeof allocationCommandResponseSchema.parse>;
-type Assignment = Allocation["assignments"][number];
 type Policy = ReturnType<typeof allocationPolicySchema.parse>;
 
 type AllocationRow = {
@@ -39,10 +37,14 @@ type AssignmentRow = {
   assessment_episode_id: string;
   assessor_profile_id: string;
   status: string;
+  assignment_role: AssignmentRole | null;
+  required_for_contact_reveal: boolean;
   contact_reveal_available: boolean;
   version: number;
   updated_at_utc: Date | string;
 };
+
+type AssignmentRole = "PRIMARY_JUDGE" | "SECONDARY_JUDGE" | "MYSTERY_JUDGE" | "TRAINING_OBSERVER";
 
 type EpisodeContext = {
   episodeId: string;
@@ -224,8 +226,50 @@ function ensureAccess(session: SessionProfile, context: EpisodeContext) {
   }
 }
 
-function revealFor(episodeType: EpisodeContext["episodeType"], assignments: Assignment[]) {
-  return episodeType === "FULL_ASSESSMENT" && assignments.length > 0 && assignments.every((assignment) => assignment.status === "ACCEPTED");
+function assignmentRoleFor(episodeType: EpisodeContext["episodeType"], index: number): AssignmentRole {
+  if (episodeType === "MYSTERY_SHOP") return "MYSTERY_JUDGE";
+  if (index === 0) return "PRIMARY_JUDGE";
+  if (index === 1) return "SECONDARY_JUDGE";
+  return "TRAINING_OBSERVER";
+}
+
+function requiresContactRevealAcceptance(role: AssignmentRole) {
+  return role !== "TRAINING_OBSERVER";
+}
+
+function revealFor(episodeType: EpisodeContext["episodeType"], assignments: AssignmentRow[]) {
+  if (episodeType !== "FULL_ASSESSMENT") return false;
+  const required = assignments.filter((assignment) => assignment.required_for_contact_reveal);
+  return required.length > 0 && required.every((assignment) => assignment.status === "ACCEPTED");
+}
+
+async function judgeCountForEpisode(client: SqlClient, episodeId: string) {
+  const area = (await client.query<{ area_hectares: string | number | null }>(
+    `
+      SELECT COALESCE(aas.area_hectares, pam.area_hectares) AS area_hectares
+      FROM assessment_episodes ae
+      LEFT JOIN applications a ON a.assessment_episode_id = ae.id
+      LEFT JOIN application_area_snapshots aas ON aas.application_id = a.id
+      LEFT JOIN LATERAL (
+        SELECT area_hectares
+        FROM park_area_measurements
+        WHERE park_id = ae.park_id AND is_current
+        ORDER BY captured_at_utc DESC, id
+        LIMIT 1
+      ) pam ON true
+      WHERE ae.id = $1
+      ORDER BY aas.captured_at_utc DESC NULLS LAST
+      LIMIT 1
+    `,
+    [episodeId]
+  )).rows[0];
+  const hectares = area?.area_hectares === null || area?.area_hectares === undefined
+    ? null
+    : Number(area.area_hectares);
+  if (hectares !== null && hectares > 25) {
+    return { suggestedJudgeCount: 2, judgeCountReasons: ["over_25_hectares"] };
+  }
+  return { suggestedJudgeCount: 2, judgeCountReasons: ["new_site"] };
 }
 
 async function hasIdempotentAudit(client: SqlClient, action: string, entityId: string, idempotencyKey?: string) {
@@ -313,15 +357,15 @@ export class PostgresAllocationRepository implements AllocationRepository {
         ORDER BY ae.updated_at_utc DESC
       `
     );
-    return allocationReadyEpisodesResponseSchema.parse({
-      policy,
-      items: rows.rows
-        .filter((row) => canAccessResource(session, {
-          parkId: row.park_id,
-          organisationId: row.organisation_id,
-          countryCode: row.country_code ?? "lower-env"
-        }))
-        .map((row) => ({
+    const items = await Promise.all(rows.rows
+      .filter((row) => canAccessResource(session, {
+        parkId: row.park_id,
+        organisationId: row.organisation_id,
+        countryCode: row.country_code ?? "lower-env"
+      }))
+      .map(async (row) => {
+        const judgeCount = await judgeCountForEpisode(this.client, row.episode_id);
+        return {
           episodeId: row.episode_id,
           applicationId: row.application_id,
           parkId: row.park_id,
@@ -331,15 +375,20 @@ export class PostgresAllocationRepository implements AllocationRepository {
           episodeStatus: row.episode_status,
           paymentStatus: "PAID",
           documentStatus: "complete",
-          suggestedJudgeCount: 2,
-          judgeCountReasons: ["new_site"],
+          suggestedJudgeCount: judgeCount.suggestedJudgeCount,
+          judgeCountReasons: judgeCount.judgeCountReasons,
           allocationStatus: row.allocation_status === "HELD" ? "held" : row.allocation_status ? "released" : "not_started"
-        }))
+        };
+      }));
+    return allocationReadyEpisodesResponseSchema.parse({
+      policy,
+      items
     });
   }
 
   async candidates(episodeId: string) {
     const policy = await currentPolicy(this.client);
+    const judgeCount = await judgeCountForEpisode(this.client, episodeId);
     const rows = await this.client.query<{
       id: string;
       display_name: string;
@@ -394,7 +443,7 @@ export class PostgresAllocationRepository implements AllocationRepository {
     });
     return allocationCandidatesResponseSchema.parse({
       episodeId,
-      suggestedJudgeCount: 2,
+      suggestedJudgeCount: judgeCount.suggestedJudgeCount,
       policy,
       candidates,
       excludedCandidateCount: rows.rows.filter((row) => row.severity === "hard_exclude").length
@@ -413,7 +462,8 @@ export class PostgresAllocationRepository implements AllocationRepository {
       if (body.assessorIds.length !== body.finalJudgeCount) {
         throw new ApiError("validation_failed", 400, "Final judge count must match selected assessor count.");
       }
-      const suggestedJudgeCount = 2;
+      const judgeCount = await judgeCountForEpisode(client, episodeId);
+      const suggestedJudgeCount = judgeCount.suggestedJudgeCount;
       if (body.finalJudgeCount !== suggestedJudgeCount && !body.reason) {
         throw new ApiError("validation_failed", 400, "Judge-count override requires a reason.");
       }
@@ -429,15 +479,25 @@ export class PostgresAllocationRepository implements AllocationRepository {
         `,
         [allocationId, episodeId, body.finalJudgeCount, suggestedJudgeCount]
       );
-      for (const assessorId of body.assessorIds) {
+      for (const [index, assessorId] of body.assessorIds.entries()) {
+        const assignmentRole = assignmentRoleFor(context.episodeType, index);
         await client.query(
           `
             INSERT INTO judge_assignments (
-              id, allocation_id, assessment_episode_id, assessor_profile_id, status, contact_reveal_available, version, updated_at_utc
+              id, allocation_id, assessment_episode_id, assessor_profile_id, status,
+              assignment_role, required_for_contact_reveal, contact_reveal_available, version, updated_at_utc
             )
-            VALUES ($1, $2, $3, $4, 'HELD', false, 0, $5::timestamptz)
+            VALUES ($1, $2, $3, $4, 'HELD', $5, $6, false, 0, $7::timestamptz)
           `,
-          [randomUUID(), allocationId, episodeId, assessorId, now]
+          [
+            randomUUID(),
+            allocationId,
+            episodeId,
+            assessorId,
+            assignmentRole,
+            requiresContactRevealAcceptance(assignmentRole),
+            now
+          ]
         );
       }
       await client.query("UPDATE assessment_episodes SET status = 'ALLOCATED_HELD', updated_at_utc = now() WHERE id = $1", [episodeId]);
@@ -525,19 +585,26 @@ export class PostgresAllocationRepository implements AllocationRepository {
       await client.query(
         `
           INSERT INTO judge_assignments (
-            id, allocation_id, assessment_episode_id, assessor_profile_id, status, contact_reveal_available, version, updated_at_utc
+            id, allocation_id, assessment_episode_id, assessor_profile_id, status,
+            assignment_role, required_for_contact_reveal, contact_reveal_available, version, updated_at_utc
           )
-          VALUES ($1, $2, $3, $4, $5, false, 0, now())
+          VALUES ($1, $2, $3, $4, $5, $6, $7, false, 0, now())
         `,
         [
           randomUUID(),
           allocationId,
           allocation.episodeId,
           body.replacementAssessorId,
-          allocation.status === "RELEASED" ? "RELEASED" : "HELD"
+          allocation.status === "RELEASED" ? "RELEASED" : "HELD",
+          replacing.assignment_role,
+          replacing.required_for_contact_reveal
         ]
       );
       await client.query("UPDATE allocations SET contact_reveal_available = false, updated_at_utc = now() WHERE id = $1", [allocationId]);
+      await client.query(
+        "UPDATE judge_assignments SET contact_reveal_available = false, updated_at_utc = now() WHERE allocation_id = $1 AND status IN ('RELEASED', 'ACCEPTED')",
+        [allocationId]
+      );
       const audit = buildAuditEvent({
         action: "REASSIGN_ALLOCATION",
         entityId: allocationId,
@@ -622,17 +689,7 @@ export class PostgresAllocationRepository implements AllocationRepository {
         [assignmentId, status, clientVersion]
       );
       const afterRows = await client.query<AssignmentRow>("SELECT * FROM judge_assignments WHERE allocation_id = $1 FOR UPDATE", [allocation.allocationId]);
-      const assignments = afterRows.rows.map((row) => ({
-        assignmentId: row.id,
-        allocationId: row.allocation_id,
-        episodeId: row.assessment_episode_id,
-        assessorId: row.assessor_profile_id,
-        status: row.status as AssignmentStatus,
-        contactRevealAvailable: row.contact_reveal_available,
-        version: row.version,
-        updatedAt: iso(row.updated_at_utc)
-      }));
-      const reveal = revealFor(context.episodeType, assignments);
+      const reveal = revealFor(context.episodeType, afterRows.rows);
       await client.query("UPDATE allocations SET contact_reveal_available = $2, updated_at_utc = now() WHERE id = $1", [allocation.allocationId, reveal]);
       await client.query(
         "UPDATE judge_assignments SET contact_reveal_available = $2, updated_at_utc = now() WHERE allocation_id = $1 AND status IN ('RELEASED', 'ACCEPTED')",

@@ -1,0 +1,70 @@
+{
+  "3:6": {
+    "name": "H1",
+    "description": ""
+  },
+  "3:45": {
+    "name": "Body text",
+    "description": ""
+  },
+  "3:49": {
+    "name": "h3",
+    "description": ""
+  },
+  "3:24": {
+    "name": "H2",
+    "description": ""
+  },
+  "5:100": {
+    "name": "H4 - Subheading",
+    "description": ""
+  },
+  "142:3336": {
+    "name": "M3/sys/light/primary",
+    "description": ""
+  },
+  "109:977": {
+    "name": "Body Base",
+    "description": ""
+  },
+  "37:1495": {
+    "name": "black",
+    "description": ""
+  },
+  "37:1548": {
+    "name": "personal",
+    "description": ""
+  },
+  "37:1547": {
+    "name": "important",
+    "description": ""
+  },
+  "37:1549": {
+    "name": "fun",
+    "description": ""
+  },
+  "195:1524": {
+    "name": "Single Line/Body Base",
+    "description": "Used for any text element where you need 100% line height. For example, an input field, a label."
+  },
+  "195:1551": {
+    "name": "Body/Base/Bold",
+    "description": ""
+  },
+  "142:3332": {
+    "name": "M3/sys/light/on-surface-variant",
+    "description": ""
+  },
+  "129:678": {
+    "name": "Text",
+    "description": ""
+  },
+  "129:1066": {
+    "name": "white",
+    "description": ""
+  },
+  "368:2315": {
+    "name": "M3/sys/light/on-primary",
+    "description": ""
+  }
+}

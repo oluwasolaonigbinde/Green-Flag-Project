@@ -46,6 +46,12 @@ export const slice5DocumentTables = [
   "document_upload_chunks"
 ] as const;
 
+export const goal3ADocumentMigrationSchemaTables = [
+  "document_subtypes",
+  "document_asset_ownerships",
+  "migration_document_file_references"
+] as const;
+
 export const slice6SubmissionPaymentTables = [
   "application_submissions",
   "invoices",
@@ -65,6 +71,19 @@ export const slice9AllocationTables = [
   "allocations",
   "judge_assignments",
   "allocation_coi_flags"
+] as const;
+
+export const goal5HighRiskModelTables = [
+  "park_area_measurements",
+  "application_area_snapshots"
+] as const;
+
+export const goal2FinanceMigrationCoverageTables = [
+  "fee_schedules",
+  "fee_schedule_lines",
+  "invoice_lines",
+  "payment_events",
+  "finance_export_runs"
 ] as const;
 
 export const slice11AssessmentTables = [
@@ -115,6 +134,20 @@ export const adminOverrideEventTablePolicy = {
   requiresReason: true,
   linksAuditEventWhereAvailable: true,
   immutableOperations: ["UPDATE", "DELETE"] as const
+} as const;
+
+export const financeFactTablePolicy = {
+  invoiceLinesImmutable: true,
+  paymentEventsAppendOnly: true,
+  issuedInvoiceFactsImmutable: true,
+  correctionsRequireEventOrSupersedeFlow: true
+} as const;
+
+export const goal3ADocumentMigrationSchemaPolicy = {
+  inertAdditiveSchemaOnly: true,
+  subtypePrimaryKey: "code",
+  taxonomyVersionIsMetadata: true,
+  rawLegacyFileEvidenceInternalOnly: true
 } as const;
 
 export {

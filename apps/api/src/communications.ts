@@ -7,6 +7,8 @@ import {
   exportJobsResponseSchema,
   exportRequestSchema,
   jobRunsResponseSchema,
+  applicantMessageThreadsResponseSchema,
+  applicantMessageCommandResponseSchema,
   messageCommandResponseSchema,
   messageThreadsResponseSchema,
   notificationDispatchStubResponseSchema,
@@ -15,13 +17,16 @@ import {
   renewalReminderRunResponseSchema
 } from "@green-flag/contracts";
 import type { ApplicantStore } from "./applicant.js";
-import { requireApplicantResourceAccess, requireOperationalResourceAccess } from "./authorization.js";
+import { requireApplicantResourceAccess, requireMutationAllowed, requireOperationalResourceAccess } from "./authorization.js";
 import { ApiError, appendAuditEvent, type AuditEvent, type AuditLedger, type SessionProfile, type SessionResolver } from "./auth.js";
+import type { CommunicationsRepository } from "./postgres-domain-stores/communications-repository.js";
+import { projectApplicantMessagesForSession } from "./redaction.js";
 
 type NotificationQueueItem = z.infer<typeof notificationQueueResponseSchema>["items"][number];
 type NotificationLogEntry = z.infer<typeof notificationQueueResponseSchema>["logs"][number];
 type MessageThread = z.infer<typeof messageThreadsResponseSchema>["threads"][number];
 type MessageEntry = z.infer<typeof messageThreadsResponseSchema>["messages"][number];
+type ApplicantMessageThreadsResponse = z.infer<typeof applicantMessageThreadsResponseSchema>;
 type JobRun = z.infer<typeof jobRunsResponseSchema>["items"][number];
 type ExportJob = z.infer<typeof exportJobsResponseSchema>["items"][number];
 
@@ -140,21 +145,26 @@ export function registerCommunicationsRoutes(
     resolveSession,
     communicationsStore,
     applicantStore,
-    auditLedger = defaultAuditLedger
+    auditLedger = defaultAuditLedger,
+    repository
   }: {
     resolveSession: SessionResolver;
-    communicationsStore: CommunicationsStore;
-    applicantStore: ApplicantStore;
+    communicationsStore?: CommunicationsStore;
+    applicantStore?: ApplicantStore;
     auditLedger?: AuditLedger;
+    repository?: CommunicationsRepository;
   }
 ) {
   async function audit(event: AuditEvent) {
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     communicationsStore.audits.push(await appendAuditEvent(auditLedger, event));
     return event.id;
   }
 
   app.get("/api/v1/admin/notifications/queue", async (request) => {
     const session = await resolveSession(request);
+    if (repository) return repository.listNotificationQueue({ session });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     requireAdmin(session);
     return notificationQueueResponseSchema.parse({
       items: [...communicationsStore.notifications.values()],
@@ -164,6 +174,11 @@ export function registerCommunicationsRoutes(
 
   app.post("/api/v1/admin/notifications/:notificationId/dispatch-stub", async (request) => {
     const session = await resolveSession(request);
+    if (repository) {
+      const params = request.params as { notificationId: string };
+      return repository.dispatchNotificationStub({ notificationId: params.notificationId, session, request });
+    }
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     requireAdmin(session);
     const params = request.params as { notificationId: string };
     const notification = communicationsStore.notifications.get(params.notificationId);
@@ -188,6 +203,8 @@ export function registerCommunicationsRoutes(
 
   app.get("/api/v1/applicant/messages", async (request) => {
     const session = await resolveSession(request);
+    if (repository) return repository.listApplicantMessages({ session });
+    if (!communicationsStore || !applicantStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     const visibleThreads = [...communicationsStore.messageThreads.values()].filter((thread) => {
       if (!thread.visibleToApplicant || thread.status !== "OPEN") return false;
       if (thread.parkId) {
@@ -203,15 +220,18 @@ export function registerCommunicationsRoutes(
       return thread.participantActorIds.includes(session.actor.actorId);
     });
     const threadIds = new Set(visibleThreads.map((thread) => thread.threadId));
-    return messageThreadsResponseSchema.parse({
+    return applicantMessageThreadsResponseSchema.parse(projectApplicantMessagesForSession({
       threads: visibleThreads,
       messages: [...communicationsStore.messages.values()].filter((message) => threadIds.has(message.threadId))
-    });
+    }, session) satisfies ApplicantMessageThreadsResponse);
   });
 
   async function createThread(request: FastifyRequest, admin: boolean) {
     const session = await resolveSession(request);
     const input = createMessageThreadRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.createThread({ body: input, admin, session, request });
+    if (!communicationsStore || !applicantStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     const ownership = resolveEpisodeOwnership(applicantStore, input.episodeId, input.parkId);
     if (admin) {
       requireAdmin(session);
@@ -252,6 +272,14 @@ export function registerCommunicationsRoutes(
         afterState: { status: thread.status, visibleToApplicant: thread.visibleToApplicant }
       }));
     });
+    if (!admin) {
+      const projected = projectApplicantMessagesForSession({ threads: [thread], messages: [message] }, session);
+      return applicantMessageCommandResponseSchema.parse({
+        thread: projected.threads[0],
+        message: projected.messages[0],
+        auditEventId
+      });
+    }
     return messageCommandResponseSchema.parse({ thread, message, auditEventId });
   }
 
@@ -259,7 +287,12 @@ export function registerCommunicationsRoutes(
 
   app.get("/api/v1/admin/messages", async (request) => {
     const session = await resolveSession(request);
+    if (repository) return repository.listAdminMessages({ session });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     requireAdmin(session);
+    if (session.actor.role === "FINANCE_ADMIN") {
+      return messageThreadsResponseSchema.parse({ threads: [], messages: [] });
+    }
     return messageThreadsResponseSchema.parse({
       threads: [...communicationsStore.messageThreads.values()],
       messages: [...communicationsStore.messages.values()]
@@ -270,8 +303,11 @@ export function registerCommunicationsRoutes(
 
   app.post("/api/v1/admin/jobs/renewal-reminders/run", async (request) => {
     const session = await resolveSession(request);
-    requireAdmin(session);
     const input = renewalReminderRunRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.runRenewalReminders({ body: input, session, request });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
+    requireAdmin(session);
     const now = new Date().toISOString();
     let response: z.infer<typeof renewalReminderRunResponseSchema>;
     await communicationsStore.withTransaction(async () => {
@@ -304,14 +340,25 @@ export function registerCommunicationsRoutes(
 
   app.get("/api/v1/admin/jobs", async (request) => {
     const session = await resolveSession(request);
+    if (repository) return repository.listJobs({ session });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     requireAdmin(session);
+    if (session.actor.role !== "SUPER_ADMIN") {
+      return jobRunsResponseSchema.parse({ items: [] });
+    }
     return jobRunsResponseSchema.parse({ items: [...communicationsStore.jobRuns.values()] });
   });
 
   app.post("/api/v1/admin/exports", async (request) => {
     const session = await resolveSession(request);
-    requireAdmin(session);
     const input = exportRequestSchema.parse(request.body);
+    requireMutationAllowed(session);
+    if (repository) return repository.createExport({ body: input, session, request });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
+    requireAdmin(session);
+    if (session.actor.role === "FINANCE_ADMIN" && input.exportType !== "payments") {
+      throw new ApiError("forbidden", 403, "Finance admins can only create payment exports.");
+    }
     const now = new Date().toISOString();
     const exportJob: ExportJob = {
       exportId: randomUUID(),
@@ -342,6 +389,8 @@ export function registerCommunicationsRoutes(
 
   app.get("/api/v1/admin/exports", async (request) => {
     const session = await resolveSession(request);
+    if (repository) return repository.listExports({ session });
+    if (!communicationsStore) throw new ApiError("dependency_missing", 500, "Communications store is not configured.");
     requireAdmin(session);
     return exportJobsResponseSchema.parse({ items: [...communicationsStore.exports.values()] });
   });

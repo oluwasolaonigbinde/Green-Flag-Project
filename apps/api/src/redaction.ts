@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import {
   applicantDashboardResponseSchema,
+  applicantMessageThreadsResponseSchema,
   applicationDocumentsResponseSchema,
   mysteryMessageProjectionSchema,
   mysteryNotificationProjectionSchema,
@@ -13,6 +14,7 @@ import type { SessionProfile } from "./auth.js";
 
 type ApplicantDashboard = z.infer<typeof applicantDashboardResponseSchema>;
 type ApplicationDocuments = z.infer<typeof applicationDocumentsResponseSchema>;
+type ApplicantMessages = z.infer<typeof applicantMessageThreadsResponseSchema>;
 type SignedDocumentAccess = z.infer<typeof signedDocumentAccessResponseSchema>;
 type MysteryRedactionDecision = z.infer<typeof mysteryRedactionDecisionSchema>;
 type MysteryNotificationProjection = z.infer<typeof mysteryNotificationProjectionSchema>;
@@ -148,6 +150,47 @@ export function redactSignedDocumentAccessForSession(
     ...access,
     filename: "redacted",
     contentType: "application/octet-stream"
+  });
+}
+
+export function projectApplicantMessagesForSession(
+  messages: {
+    threads: Array<{
+      threadId: string;
+      episodeId?: string | undefined;
+      parkId?: string | undefined;
+      subject: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    messages: Array<{
+      messageId: string;
+      threadId: string;
+      senderActorId: string;
+      body: string;
+      createdAt: string;
+    }>;
+  },
+  session: SessionProfile
+): ApplicantMessages {
+  return applicantMessageThreadsResponseSchema.parse({
+    threads: messages.threads.map((thread) => ({
+      threadId: thread.threadId,
+      ...(thread.episodeId ? { episodeId: thread.episodeId } : {}),
+      ...(thread.parkId ? { parkId: thread.parkId } : {}),
+      subject: thread.subject,
+      status: thread.status,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt
+    })),
+    messages: messages.messages.map((message) => ({
+      messageId: message.messageId,
+      threadId: message.threadId,
+      body: message.body,
+      createdAt: message.createdAt,
+      sentByCurrentActor: message.senderActorId === session.actor.actorId
+    }))
   });
 }
 

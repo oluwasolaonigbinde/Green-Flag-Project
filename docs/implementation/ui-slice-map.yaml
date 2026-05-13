@@ -1,5 +1,8 @@
 # Maps local Figma/PNG evidence to Green Flag delivery slices.
 # Business rules still come from PRD/requirements/architecture, not UI labels.
+# Backend slices are complete. This file now supports frontend gap closure,
+# visual QA, and UI reopen planning. UI must not override backend Mystery,
+# RBAC, redaction, audit, or lifecycle rules.
 
 version: 1
 

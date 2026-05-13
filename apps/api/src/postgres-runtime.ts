@@ -28,6 +28,10 @@ import { PostgresApplicantRepository, type ApplicantRepository } from "./postgre
 import { PostgresAssessorRepository, type AssessorRepository } from "./postgres-domain-stores/assessor-repository.js";
 import { PostgresAllocationRepository, type AllocationRepository } from "./postgres-domain-stores/allocation-repository.js";
 import { PostgresAssessmentRepository, type AssessmentRepository } from "./postgres-domain-stores/assessment-repository.js";
+import { PostgresCommunicationsRepository, type CommunicationsRepository } from "./postgres-domain-stores/communications-repository.js";
+import { PostgresResultsRepository, type ResultsRepository } from "./postgres-domain-stores/results-repository.js";
+import { PostgresMigrationReferenceRepository } from "./postgres-domain-stores/migration-reference-repository.js";
+import { MigrationReferenceService } from "./migration-reference.js";
 
 interface InternalUserRow {
   id: string;
@@ -178,6 +182,9 @@ export interface PostgresApiRuntime {
   assessorRepository: AssessorRepository;
   allocationRepository: AllocationRepository;
   assessmentRepository: AssessmentRepository;
+  communicationsRepository: CommunicationsRepository;
+  resultsRepository: ResultsRepository;
+  migrationReferenceService: MigrationReferenceService;
 }
 
 export { isProductionLikeRuntime } from "./runtime-safety.js";
@@ -218,6 +225,12 @@ export async function createPostgresApiRuntime(env: NodeJS.ProcessEnv = process.
     assessorRepository: new PostgresAssessorRepository(pool, unitOfWork, auditLedger),
     allocationRepository: new PostgresAllocationRepository(pool, unitOfWork, auditLedger),
     assessmentRepository: new PostgresAssessmentRepository(pool, unitOfWork, auditLedger),
+    communicationsRepository: new PostgresCommunicationsRepository(pool, unitOfWork, auditLedger),
+    resultsRepository: new PostgresResultsRepository(pool, unitOfWork, auditLedger),
+    migrationReferenceService: new MigrationReferenceService(
+      new PostgresMigrationReferenceRepository(pool),
+      auditLedger
+    ),
     stores: await createPostgresDomainStores({
       client: pool,
       unitOfWork,
